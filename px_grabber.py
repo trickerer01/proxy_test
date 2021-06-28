@@ -1,0 +1,48 @@
+# coding=UTF-8
+"""
+Author: trickerer (https://github.com/trickerer)
+"""
+#########################################
+#
+#
+
+from threading import Thread
+
+from module import (
+    px_grab_fate as pg_fate,
+    px_grab_freeproxy as pg_fp,
+    px_grab_freeproxylist as pg_fpl,
+    px_grab_hidemy as pg_hid,
+    px_grab_proxylist as pg_pl,
+    px_grab_txt as pg_txt
+)
+
+MODULES = [pg_hid, pg_fate, pg_fp, pg_fpl, pg_pl, pg_txt]
+
+
+def fetch_all():
+
+    try:
+        grab_threads = []
+        for modul in MODULES:
+            if not modul.ENABLED:
+                continue
+            grab_thread = Thread(target=modul.grab_proxies)
+            grab_thread.start()
+            grab_threads.append(grab_thread)
+
+        for thread in grab_threads:
+            thread.join()
+
+        checklist = ''
+        for modul in MODULES:
+            checklist += modul.my_result
+
+        return checklist
+
+    except Exception as err:
+        raise err
+
+#
+#
+#########################################
