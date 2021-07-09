@@ -17,7 +17,7 @@ from module import (
     px_grab_txt as pg_txt
 )
 
-MODULES = [pg_hid, pg_fate, pg_fp, pg_fpl, pg_pl, pg_txt]
+MODULES = [pg_fate, pg_fp, pg_fpl, pg_hid, pg_pl, pg_txt]
 
 
 def fetch_all():

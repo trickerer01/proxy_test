@@ -52,9 +52,8 @@ def grab_proxies():
 
             idx = 0
             while idx < len(addr_port_results):
-                if str(ptype_results[idx]).find('HTTP') >= 0:
-                    with myres_lock:
-                        my_result += format_prox(addr_port_results[idx][0] + ':' + addr_port_results[idx][1])
+                with myres_lock:
+                    my_result += format_prox(addr_port_results[idx][0] + ':' + addr_port_results[idx][1])
                 idx += 1
 
         except Exception as err:

@@ -112,7 +112,7 @@ def run_main():
     proxy_check_time = \
         (px_tester.PROXY_CHECK_TIMEOUT + px_tester.PROXY_CHECK_RECHECK_TIME) * (int(len(all_prox_set) / px_tester.PROXY_CHECK_POOL) + 1)
     print(('\nChecking %d proxies (%d queries). This may take more than %d seconds' %
-           (len(all_prox_set), px_tester.PROXY_CHECK_TRIES, proxy_check_time * px_tester.PROXY_CHECK_TRIES)))
+           (len(all_prox_set), px_tester.PROXY_CHECK_TRIES, proxy_check_time * px_tester.PROXY_CHECK_TRIES * 2)))
 
     print('\nTimed List:')
     res_display_queue = Thread(target=cycle_results, daemon=True)
