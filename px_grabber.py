@@ -16,6 +16,7 @@ from module import (
     px_grab_proxylist as pg_pl,
     px_grab_txt as pg_txt
 )
+from px_utils import module_name_short
 
 MODULES = [pg_fate, pg_fp, pg_fpl, pg_hid, pg_pl, pg_txt]
 
@@ -36,7 +37,10 @@ def fetch_all():
 
         checklist = ''
         for modul in MODULES:
-            checklist += modul.my_result
+            if len(modul.my_result) == 0:
+                print(module_name_short(modul) + ' returned empty result!')
+            else:
+                checklist += modul.my_result
 
         return checklist
 

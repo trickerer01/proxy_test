@@ -32,6 +32,10 @@ def storefile(filename: str, prox_blob: str):
     except Exception as err:
         raise err
 
+
+def module_name_short(module) -> str:
+    return module.__name__[module.__name__.find('px_grab_') + 8:]
+
 #
 #
 #########################################

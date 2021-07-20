@@ -90,7 +90,7 @@ def run_main():
     global exiting
 
     print('\nEnabled modules:')
-    print(''.join([modul.__name__[modul.__name__.find('px_grab_') + 8:] + ' ' for modul in px_grabber.MODULES]))
+    print(''.join([px_utils.module_name_short(modul) + ' ' for modul in px_grabber.MODULES]))
 
     parse_target()
 
