@@ -7,13 +7,14 @@ Author: trickerer (https://github.com/trickerer)
 #
 
 from re import search as re_search
+from typing import Set
 
 from iteration_utilities import unique_everseen
 
 from px_tester import __DEBUG
 
 
-def build_proxy_list(proxlist_str: str):
+def build_proxy_list(proxlist_str: str) -> Set[str]:
 
     checklist = set()
     res_raw = proxlist_str.split('\n')

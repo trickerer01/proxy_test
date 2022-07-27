@@ -26,13 +26,13 @@ out_file = '!px_list_results.txt'
 exiting = False
 
 
-def _exit(msg: str, code: int):
+def _exit(msg: str, code: int) -> None:
     px_utils.s_print(msg + (' (code: %d)' % code))
     input('\nPress <Enter> to quit...')
     raise SystemExit
 
 
-def parse_target():
+def parse_target() -> None:
     global out_file
 
     if len(argv) > 2:
@@ -45,10 +45,18 @@ def parse_target():
     if len(px_tester.target_addr) < 4:
         _exit('\nError. Usage: px_test TARGET_ADDRESS', code=-3)
 
-    sitename = str(re_search(r'(?:https?://)?([^/]+)/?', px_tester.target_addr).group(1))
+    try:
+        # sitename = str(re_search(r'(?:https?://)?([^/]+)/?', px_tester.target_addr).group(1))
+        sitename = str(re_search(r'(?:https?://)?.+', px_tester.target_addr).group(1))
+        while len(sitename) > 0 and sitename[-1] == '/':
+            sitename = sitename[:-1]
+    except Exception:
+        print('\nInvalid address \'%s\'!' % px_tester.target_addr)
+        raise
+
     print(sitename)
 
-    px_tester.target_addr = 'http://' + px_tester.target_addr + '/'
+    px_tester.target_addr = 'http://' + sitename + '/'
 
     with Session() as s:
         try:
@@ -65,7 +73,7 @@ def parse_target():
             print('\nAddress test result: %s' % str(err))
 
 
-def cycle_results():
+def cycle_results() -> None:
 
     try:
         while True:
@@ -86,7 +94,7 @@ def cycle_results():
         raise err
 
 
-def run_main():
+def run_main() -> None:
     global exiting
 
     print('\nEnabled modules:')

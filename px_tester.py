@@ -61,7 +61,7 @@ class _ProxyStruct():
 
         results[addr] = self
 
-    def finalize(self):
+    def finalize(self) -> None:
         # average delay should only be counted from valid delays
         average_delay = 0.0
         average_access = 0
@@ -93,12 +93,12 @@ class _ProxyStruct():
 
         self.finalized = True
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '(%s) %s (%.3f ms) - %d%% (%d/%d) in %.2fs' % (self.ptype, self._addr, self.average_delay, self.average_access,
                                                               self.suc_count, PROXY_CHECK_TRIES, self._total_time)
 
 
-def check_proxy(px: str):
+def check_proxy(px: str) -> None:
     global results
 
     if px in results.keys():
@@ -175,7 +175,7 @@ def check_proxy(px: str):
                 s_print('error214 - proxy %s not found - not finalized' % px)
 
 
-def check_proxies(proxlist: set):
+def check_proxies(proxlist: set) -> None:
 
     try:
         pool = Pool(PROXY_CHECK_POOL)

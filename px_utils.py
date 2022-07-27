@@ -16,12 +16,12 @@ print_lock = ThreadLock()
 useragent = 'Mozilla/5.0 (X11; Linux i686; rv:68.9) Gecko/20100101 Goanna/4.8 Firefox/68.9'
 
 
-def s_print(msg):
+def s_print(msg) -> None:
     with print_lock:
         print(msg)
 
 
-def storefile(filename: str, prox_blob: str):
+def storefile(filename: str, prox_blob: str) -> None:
 
     try:
         if path.isfile(filename):

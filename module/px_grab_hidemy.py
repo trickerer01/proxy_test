@@ -31,14 +31,14 @@ myres_lock = ThreadLock()
 
 
 # required format: {"export_address": ["3.210.193.173"], "port": 80}
-def format_prox(proxline: str):
+def format_prox(proxline: str) -> str:
     prox_addr = proxline[:proxline.find(':')]
     prox_port = proxline[proxline.find(':') + 1:]
     prox_string = '{"export_address": ["' + prox_addr + '"], "port": ' + prox_port + '}'
     return prox_string + '\n'
 
 
-def grab_proxies():
+def grab_proxies() -> None:
 
     def proc_page(raw):
         global my_result

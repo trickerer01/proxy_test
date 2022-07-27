@@ -19,14 +19,14 @@ proxylist_addr = 'http://proxy-list.org/english/index.php?p='
 proxylist_pages = 10
 
 
-def format_proxy(proxline):
+def format_proxy(proxline) -> str:
     prox_addr = proxline[:proxline.find(':')]
     prox_port = proxline[proxline.find(':') + 1:]
     prox_string = '{"export_address": ["' + prox_addr + '"], "port": ' + prox_port + '}'
     return prox_string + '\n'
 
 
-def grab_proxies():
+def grab_proxies() -> None:
     global my_result
 
     with Session() as cs:

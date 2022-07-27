@@ -21,7 +21,7 @@ from px_utils import module_name_short
 MODULES = [pg_fate, pg_fp, pg_fpl, pg_hid, pg_pl, pg_txt]
 
 
-def fetch_all():
+def fetch_all() -> str:
 
     try:
         grab_threads = []
