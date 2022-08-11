@@ -47,7 +47,7 @@ def parse_target() -> None:
 
     try:
         # sitename = str(re_search(r'(?:https?://)?([^/]+)/?', px_tester.target_addr).group(1))
-        sitename = str(re_search(r'(?:https?://)?.+', px_tester.target_addr).group(1))
+        sitename = str(re_search(r'(?:https?://)?(.+)', px_tester.target_addr).group(1))
         while len(sitename) > 0 and sitename[-1] == '/':
             sitename = sitename[:-1]
     except Exception:
