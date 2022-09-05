@@ -38,9 +38,9 @@ def build_proxy_list(proxlist_str: str) -> Set[str]:
                 port = str(port_re.group(1))
 
         if not drop:
-            checklist.add(addr + ':' + port)
+            checklist.add(f'{addr}:{port}')
         elif __DEBUG:
-            print('dropped %s...' % res_raw[idx])
+            print(f'dropped {res_raw[idx]}...')
 
         idx += 1
 

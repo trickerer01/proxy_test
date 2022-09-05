@@ -15,7 +15,7 @@ from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.exceptions import HTTPError, ProxyError
 
-from px_utils import s_print
+from px_utils import s_print, useragent
 
 __DEBUG = False
 
@@ -27,10 +27,9 @@ PROXY_CHECK_UNSUCCESS_LIMIT = 2
 PROXY_CHECK_RECHECK_TIME = 2
 PROXY_CHECK_TIMEOUT = max(int(CHECKLIST_RESPONSE_THRESHOLD) + 2, 5)
 
-PTYPE_SOCKS = 'socks5h'
+PTYPE_SOCKS = 'socks5'
 PTYPE_HTTP = 'http'
 
-useragent = 'Mozilla/5.0 (X11; Linux i686; rv:68.9) Gecko/20100101 Goanna/4.8 Firefox/68.9'
 default_headers = {'User-Agent': useragent}
 
 target_addr = ''
@@ -41,7 +40,7 @@ result_lock = ThreadLock()
 
 
 class _ProxyStruct():
-    def __init__(self, ptype: str, addr='', delay=0.0, accessibility=0, success=False):
+    def __init__(self, ptype: str, addr: str, delay: float, accessibility: int, success: bool) -> None:
         global results
 
         self.ptype = ptype
@@ -54,7 +53,6 @@ class _ProxyStruct():
         self.finalized = False
 
         self.average_delay = 0.0
-        self.average_access = 0
 
         self.start_time = 0.0
         self._total_time = 0.0
@@ -64,38 +62,23 @@ class _ProxyStruct():
     def finalize(self) -> None:
         # average delay should only be counted from valid delays
         average_delay = 0.0
-        average_access = 0
 
         valid_delays = 0
         for val in self.delay:
             average_delay += max(val, 0.0)
             valid_delays += 1 if val >= 0.0 else 0
-        for val in self.accessibility:
-            if val == 503:
-                average_access = 503 * PROXY_CHECK_TRIES
-                break
-            elif val == 509:
-                average_access = 509 * PROXY_CHECK_TRIES
-                break
-            else:
-                average_access += val
 
         average_delay = average_delay / max(valid_delays, 1)
-        average_access = int(average_access / PROXY_CHECK_TRIES)
-
-        if 100 < average_access < 503:
-            average_access = 503
 
         self.average_delay = average_delay
-        self.average_access = average_access
 
         self._total_time = ltime() - self.start_time
 
         self.finalized = True
 
     def __str__(self) -> str:
-        return '(%s) %s (%.3f ms) - %d%% (%d/%d) in %.2fs' % (self.ptype, self._addr, self.average_delay, self.average_access,
-                                                              self.suc_count, PROXY_CHECK_TRIES, self._total_time)
+        return (f'({self.ptype}) {self._addr} ({self.average_delay:.3f} ms) - {self.suc_count:d}/'
+                f'{PROXY_CHECK_TRIES:d} in {self._total_time:.2f}s [{", ".join([str(a) for a in self.accessibility])}]')
 
 
 def check_proxy(px: str) -> None:
@@ -106,31 +89,33 @@ def check_proxy(px: str) -> None:
 
     cur_prox = None
     with Session() as cs:
-        for is_socks in range(2):
+        for is_socks in (False, True):
 
-            if is_socks == 1 and cur_prox and cur_prox.finalized and 0 < cur_prox.average_access < 500:
+            if is_socks and cur_prox and cur_prox.finalized and 0 < cur_prox.accessibility.index(200) != -1:
                 break  # do not check socks proxy if http one is valid
 
             ptype = (PTYPE_SOCKS if is_socks == 1 else PTYPE_HTTP)
             cs.keep_alive = True
-            cs.headers['User-Agent'] = useragent
             cs.adapters.clear()
             cs.mount('http://', HTTPAdapter(pool_maxsize=1, max_retries=0))
             cs.mount('https://', HTTPAdapter(pool_maxsize=1, max_retries=0))
-            cs.proxies.update({'all': ptype + '://' + px})
+            cs.headers.update(default_headers.copy())
+            cs.proxies.update({'all': f'{ptype}://{px}'})
 
             cur_prox = None
             total_timer = ltime()
             for n in range(0, PROXY_CHECK_TRIES):
                 if n > 0:
-                    thread_sleep(PROXY_CHECK_RECHECK_TIME)
+                    thread_sleep(float(PROXY_CHECK_RECHECK_TIME))
                 timer = ltime()
                 try:
-                    r = cs.request(method='GET', url=(target_addr), headers=default_headers, cookies=None, timeout=PROXY_CHECK_TIMEOUT)
+                    r = cs.request(method='GET', url=target_addr, timeout=PROXY_CHECK_TIMEOUT)
                     res_delay = ltime() - timer
-                    res_acc = 100
+                    res_acc = 200
                     suc = True
                     r.raise_for_status()
+                    if r.status_code > 200:
+                        raise HTTPError(response=r)
                     r.close()
                 except (KeyboardInterrupt, SystemExit) as err:
                     raise err
@@ -147,13 +132,13 @@ def check_proxy(px: str) -> None:
                         res_acc = 509
                         suc = True
                     elif __DEBUG:
-                        s_print(('%s - error %s: %s' % (px, str(exc_info()[0]), str(exc_info()[1]))))
+                        s_print(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
                 except Exception:
                     res_delay = -1.0
                     res_acc = 0
                     suc = False
                     if __DEBUG:
-                        s_print(('%s - error %s: %s' % (px, str(exc_info()[0]), str(exc_info()[1]))))
+                        s_print(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
 
                 with result_lock:
                     if cur_prox:
@@ -161,7 +146,7 @@ def check_proxy(px: str) -> None:
                         cur_prox.accessibility.append(res_acc)
                         cur_prox.suc_count += 1 if suc is True else 0
                         # will be filtered out anyways
-                        if (not suc and (n + 1) - cur_prox.suc_count) >= PROXY_CHECK_UNSUCCESS_LIMIT:
+                        if not suc and ((n + 1) - cur_prox.suc_count >= PROXY_CHECK_UNSUCCESS_LIMIT):
                             # s_print(('%s - unsuccess count reached!' % px))
                             cur_prox.finalize()
                             break
@@ -172,7 +157,7 @@ def check_proxy(px: str) -> None:
             if cur_prox:
                 cur_prox.finalize()
             else:
-                s_print('error214 - proxy %s not found - not finalized' % px)
+                s_print(f'error214 - proxy {px} not found - not finalized')
 
 
 def check_proxies(proxlist: set) -> None:

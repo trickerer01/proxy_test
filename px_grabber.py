@@ -38,7 +38,7 @@ def fetch_all() -> str:
         checklist = ''
         for modul in MODULES:
             if len(modul.my_result) == 0:
-                print(module_name_short(modul) + ' returned empty result!')
+                print(f'{module_name_short(modul)} returned empty result!')
             else:
                 checklist += modul.my_result
 

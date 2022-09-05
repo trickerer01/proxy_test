@@ -27,7 +27,7 @@ exiting = False
 
 
 def _exit(msg: str, code: int) -> None:
-    px_utils.s_print(msg + (' (code: %d)' % code))
+    px_utils.s_print(f'{msg} (code: {code:d})')
     input('\nPress <Enter> to quit...')
     raise SystemExit
 
@@ -36,14 +36,14 @@ def parse_target() -> None:
     global out_file
 
     if len(argv) > 2:
-        _exit('\nError. Usage: px_test TARGET_ADDRESS', code=-2)
+        _exit('\nError. Usage: px_test TARGET_ADDRESS', -2)
     elif len(argv) < 2:
         px_tester.target_addr = input('\nEnter web address to test: ')
     else:
         px_tester.target_addr = argv[1]
 
     if len(px_tester.target_addr) < 4:
-        _exit('\nError. Usage: px_test TARGET_ADDRESS', code=-3)
+        _exit('\nError. Usage: px_test TARGET_ADDRESS', -3)
 
     try:
         # sitename = str(re_search(r'(?:https?://)?([^/]+)/?', px_tester.target_addr).group(1))
@@ -51,12 +51,12 @@ def parse_target() -> None:
         while len(sitename) > 0 and sitename[-1] == '/':
             sitename = sitename[:-1]
     except Exception:
-        print('\nInvalid address \'%s\'!' % px_tester.target_addr)
+        print(f'\nInvalid address \'{px_tester.target_addr}\'!')
         raise
 
     print(sitename)
 
-    px_tester.target_addr = 'http://' + sitename + '/'
+    px_tester.target_addr = f'http://{sitename}/'
 
     with Session() as s:
         try:
@@ -70,7 +70,7 @@ def parse_target() -> None:
             if str(err).find('getaddrinfo failed') >= 0:
                 _exit('\nError. Unable to get address info', -5)
         except Exception as err:
-            print('\nAddress test result: %s' % str(err))
+            print(f'\nAddress test result: {str(err)}')
 
 
 def cycle_results() -> None:
@@ -98,7 +98,7 @@ def run_main() -> None:
     global exiting
 
     print('\nEnabled modules:')
-    print(''.join([px_utils.module_name_short(modul) + ' ' for modul in px_grabber.MODULES]))
+    print(' '.join([px_utils.module_name_short(modul) for modul in px_grabber.MODULES]))
 
     parse_target()
 
@@ -119,8 +119,8 @@ def run_main() -> None:
 
     proxy_check_time = \
         (px_tester.PROXY_CHECK_TIMEOUT + px_tester.PROXY_CHECK_RECHECK_TIME) * (int(len(all_prox_set) / px_tester.PROXY_CHECK_POOL) + 1)
-    print(('\nChecking %d proxies (%d queries). This may take more than %d seconds' %
-           (len(all_prox_set), px_tester.PROXY_CHECK_TRIES, proxy_check_time * px_tester.PROXY_CHECK_TRIES * 2)))
+    print(f'\nChecking {len(all_prox_set):d} proxies ({px_tester.PROXY_CHECK_TRIES:d} queries). This may take more than '
+          f'{proxy_check_time * px_tester.PROXY_CHECK_TRIES * 2:d} seconds')
 
     print('\nTimed List:')
     res_display_queue = Thread(target=cycle_results, daemon=True)
@@ -147,7 +147,7 @@ def run_main() -> None:
         if res.average_access == 0 and not res.finalized:
             res.finalize()
         i += 1
-    print(('Filtered %d / %d entries.\n\nSorting...' % (oldlen - len(results), oldlen)))
+    print(f'Filtered {oldlen - len(results):d} / {oldlen:d} entries.\n\nSorting...')
 
     t_results = []
     while True:
@@ -167,15 +167,15 @@ def run_main() -> None:
         t_results.append(results[suc_idx])
     results = t_results
 
-    print(('\nAll checked (%.fs). Sorted List (%d):' % (end_time - start_time, len(results))))
+    print(f'\nAll checked ({end_time - start_time:f}s). Sorted List ({len(results):d}):')
     for res in results:
-        print((' ' * 4 + str(res)))
+        print(f'    {str(res)}')
 
     if path.isfile(out_file):
         remove_file(out_file)
 
     if len(results) > 0:
-        with open(out_file, 'w') as ofile:
+        with open(out_file, 'w', encoding='utf8') as ofile:
             ofile.write('px_test results:\n')
             for res in results:
                 ofile.write(str(res) + '\n')

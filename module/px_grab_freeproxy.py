@@ -34,7 +34,7 @@ def format_prox(proxline: str) -> str:
 
 def grab_proxies() -> None:
 
-    def proc_page():
+    def proc_page() -> None:
         global my_result
         try:
             prox_lines_matches = re_findall(r'^<tr><td style=.+</small></td></tr>$', str(res_raw))
