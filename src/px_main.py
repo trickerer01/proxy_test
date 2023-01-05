@@ -140,11 +140,12 @@ def run_main() -> None:
     oldlen = len(results)
     i = 0
     while i < len(results):
-        res = results[i]
+        # noinspection PyProtectedMember
+        res = results[i]  # type: px_tester._ProxyStruct
         if sum(res.accessibility) == 0:
             results.pop(i)
             continue
-        if res.average_access == 0 and not res.finalized:
+        if not res.finalized:
             res.finalize()
         i += 1
     print(f'Filtered {oldlen - len(results):d} / {oldlen:d} entries.\n\nSorting...')
@@ -167,7 +168,7 @@ def run_main() -> None:
         t_results.append(results[suc_idx])
     results = t_results
 
-    print(f'\nAll checked ({end_time - start_time:f}s). Sorted List ({len(results):d}):')
+    print(f'\nAll checked ({end_time - start_time:.3f}s). Sorted List ({len(results):d}):')
     for res in results:
         print(f'    {str(res)}')
 
@@ -175,7 +176,7 @@ def run_main() -> None:
         remove_file(out_file)
 
     if len(results) > 0:
-        with open(out_file, 'w', encoding='utf8') as ofile:
+        with open(out_file, 'wt', encoding='utf8') as ofile:
             ofile.write('px_test results:\n')
             for res in results:
                 ofile.write(str(res) + '\n')

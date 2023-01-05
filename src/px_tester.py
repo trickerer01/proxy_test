@@ -27,7 +27,7 @@ PROXY_CHECK_UNSUCCESS_LIMIT = 2
 PROXY_CHECK_RECHECK_TIME = 2
 PROXY_CHECK_TIMEOUT = max(int(CHECKLIST_RESPONSE_THRESHOLD) + 2, 5)
 
-PTYPE_SOCKS = 'socks5'
+PTYPE_SOCKS = 'socks'
 PTYPE_HTTP = 'http'
 
 default_headers = {'User-Agent': useragent}
@@ -77,7 +77,7 @@ class _ProxyStruct():
         self.finalized = True
 
     def __str__(self) -> str:
-        return (f'({self.ptype}) {self._addr} ({self.average_delay:.3f} ms) - {self.suc_count:d}/'
+        return (f'({self.ptype}) {self._addr} ({self.average_delay:.3f}s) - {self.suc_count:d}/'
                 f'{PROXY_CHECK_TRIES:d} in {self._total_time:.2f}s [{", ".join([str(a) for a in self.accessibility])}]')
 
 
@@ -89,12 +89,12 @@ def check_proxy(px: str) -> None:
 
     cur_prox = None
     with Session() as cs:
-        for is_socks in (False, True):
+        for is_socks in [False, True]:
 
             if is_socks and cur_prox and cur_prox.finalized and 0 < cur_prox.accessibility.index(200) != -1:
                 break  # do not check socks proxy if http one is valid
 
-            ptype = (PTYPE_SOCKS if is_socks == 1 else PTYPE_HTTP)
+            ptype = PTYPE_SOCKS if is_socks == 1 else PTYPE_HTTP
             cs.keep_alive = True
             cs.adapters.clear()
             cs.mount('http://', HTTPAdapter(pool_maxsize=1, max_retries=0))
