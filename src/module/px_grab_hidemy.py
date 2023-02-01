@@ -40,7 +40,7 @@ def format_prox(proxline: str) -> str:
 
 def grab_proxies() -> None:
 
-    def proc_page(raw) -> None:
+    def proc_page(raw: BeautifulSoup) -> None:
         global my_result
         try:
             content = str(raw)

@@ -18,7 +18,7 @@ proxylist_addr = 'https://raw.githubusercontent.com/fate0/proxylist/master/proxy
 
 
 # required format: {"export_address": ["3.210.193.173"], "port": 80}
-def format_proxy(proxline) -> str:
+def format_proxy(proxline: str) -> str:
     prox_addr_r = re_search(r'\"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\"\]', proxline)
     prox_port_r = re_search(r'\"port\": (\d+)', proxline)
     prox_string = '{"export_address": ["' + prox_addr_r.group(1) + '"], "port": ' + prox_port_r.group(1) + '}\n' \

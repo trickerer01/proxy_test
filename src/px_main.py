@@ -170,7 +170,7 @@ def run_main() -> None:
 
     print(f'\nAll checked ({end_time - start_time:.3f}s). Sorted List ({len(results):d}):')
     for res in results:
-        print(f'    {str(res)}')
+        print(f' {str(res)}')
 
     if path.isfile(out_file):
         remove_file(out_file)

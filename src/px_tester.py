@@ -94,7 +94,7 @@ def check_proxy(px: str) -> None:
             if is_socks and cur_prox and cur_prox.finalized and 0 < cur_prox.accessibility.index(200) != -1:
                 break  # do not check socks proxy if http one is valid
 
-            ptype = PTYPE_SOCKS if is_socks == 1 else PTYPE_HTTP
+            ptype = PTYPE_SOCKS if is_socks is True else PTYPE_HTTP
             cs.keep_alive = True
             cs.adapters.clear()
             cs.mount('http://', HTTPAdapter(pool_maxsize=1, max_retries=0))
@@ -104,19 +104,19 @@ def check_proxy(px: str) -> None:
 
             cur_prox = None
             total_timer = ltime()
-            for n in range(0, PROXY_CHECK_TRIES):
+            for n in range(PROXY_CHECK_TRIES):
                 if n > 0:
                     thread_sleep(float(PROXY_CHECK_RECHECK_TIME))
                 timer = ltime()
                 try:
                     r = cs.request(method='GET', url=target_addr, timeout=PROXY_CHECK_TIMEOUT)
                     res_delay = ltime() - timer
+                    r.close()
+                    if r.ok is False:
+                        raise HTTPError(response=r)
+                    r.raise_for_status()
                     res_acc = 200
                     suc = True
-                    r.raise_for_status()
-                    if r.status_code > 200:
-                        raise HTTPError(response=r)
-                    r.close()
                 except (KeyboardInterrupt, SystemExit) as err:
                     raise err
                 except (HTTPError, ProxyError) as err:
@@ -124,13 +124,15 @@ def check_proxy(px: str) -> None:
                     res_acc = 0
                     suc = False
                     if err.response.status_code == 503:
-                        res_delay = -1.0
-                        res_acc = 503
-                        suc = True
+                        # res_delay = -1.0
+                        # res_acc = 503
+                        # suc = True
+                        pass
                     elif err.response.status_code == 509:
-                        res_delay = -1.0
-                        res_acc = 509
-                        suc = True
+                        # res_delay = -1.0
+                        # res_acc = 509
+                        # suc = True
+                        pass
                     elif __DEBUG:
                         s_print(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
                 except Exception:

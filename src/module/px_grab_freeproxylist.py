@@ -17,7 +17,7 @@ my_result = ''
 proxylist_addr = 'https://free-proxy-list.net/'
 
 
-def format_proxy(proxline) -> str:
+def format_proxy(proxline: str) -> str:
     prox_addr = proxline[:proxline.find(':')]
     prox_port = proxline[proxline.find(':') + 1:]
     prox_string = '{"export_address": ["' + prox_addr + '"], "port": ' + prox_port + '}'

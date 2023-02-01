@@ -19,7 +19,7 @@ proxylist_addr = 'http://proxy-list.org/english/index.php?p='
 proxylist_pages = 10
 
 
-def format_proxy(proxline) -> str:
+def format_proxy(proxline: str) -> str:
     prox_addr = proxline[:proxline.find(':')]
     prox_port = proxline[proxline.find(':') + 1:]
     prox_string = '{"export_address": ["' + prox_addr + '"], "port": ' + prox_port + '}'

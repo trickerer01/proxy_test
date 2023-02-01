@@ -56,7 +56,7 @@ def grab_proxies() -> None:
                 pages_u = list(unique_everseen(list(pages)))
                 i = 0
                 while i < len(pages_u):
-                    # todo: extract page num, this code is no gonna work
+                    # todo: extract page num, this code is not gonna work
                     pages_u[i] = int(pages_u[i])
                     i += 1
                 num_pages = min(5, max(pages_u))  # pages 6+ require captcha

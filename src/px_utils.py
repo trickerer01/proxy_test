@@ -8,14 +8,12 @@ Author: trickerer (https://github.com/trickerer)
 
 from threading import Lock as ThreadLock
 
-
-append_lock = ThreadLock()
 print_lock = ThreadLock()
 
 useragent = 'Mozilla/5.0 (X11; Linux i686; rv:68.9) Gecko/20100101 Goanna/4.8 Firefox/68.9'
 
 
-def s_print(msg) -> None:
+def s_print(msg: str) -> None:
     with print_lock:
         print(msg)
 
