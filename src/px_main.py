@@ -11,6 +11,7 @@ from re import search as re_search
 from sys import argv
 from threading import Thread
 from time import time as ltime, sleep as thread_sleep
+from urllib.parse import urlparse
 
 from requests import Session
 from requests.exceptions import HTTPError, ConnectionError
@@ -46,17 +47,12 @@ def parse_target() -> None:
         _exit('\nError. Usage: px_test TARGET_ADDRESS', -3)
 
     try:
-        # sitename = str(re_search(r'(?:https?://)?([^/]+)/?', px_tester.target_addr).group(1))
-        sitename = str(re_search(r'(?:https?://)?(.+)', px_tester.target_addr).group(1))
-        while len(sitename) > 0 and sitename[-1] == '/':
-            sitename = sitename[:-1]
+        urlparse(px_tester.target_addr)
     except Exception:
         print(f'\nInvalid address \'{px_tester.target_addr}\'!')
         raise
 
-    print(sitename)
-
-    px_tester.target_addr = f'http://{sitename}/'
+    print(px_tester.target_addr)
 
     with Session() as s:
         try:
