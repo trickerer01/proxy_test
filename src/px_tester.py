@@ -23,7 +23,7 @@ CHECKLIST_RESPONSE_THRESHOLD = 4.0
 
 PROXY_CHECK_POOL = 100
 PROXY_CHECK_TRIES = 5
-PROXY_CHECK_UNSUCCESS_LIMIT = 2
+PROXY_CHECK_UNSUCCESS_LIMIT = 3
 PROXY_CHECK_RECHECK_TIME = 2
 PROXY_CHECK_TIMEOUT = max(int(CHECKLIST_RESPONSE_THRESHOLD) + 2, 5)
 
@@ -57,7 +57,7 @@ class _ProxyStruct():
         self.start_time = 0.0
         self._total_time = 0.0
 
-        results[addr] = self
+        results[f'({ptype}) {addr}'] = self
 
     def finalize(self) -> None:
         # average delay should only be counted from valid delays
@@ -90,8 +90,7 @@ def check_proxy(px: str) -> None:
     cur_prox = None
     with Session() as cs:
         for is_socks in [False, True]:
-
-            if is_socks and cur_prox and cur_prox.finalized and 0 < cur_prox.accessibility.index(200) != -1:
+            if is_socks and cur_prox is not None and cur_prox.finalized is True and cur_prox.accessibility.index(200) >= 0:
                 break  # do not check socks proxy if http one is valid
 
             ptype = PTYPE_SOCKS if is_socks is True else PTYPE_HTTP
@@ -109,14 +108,13 @@ def check_proxy(px: str) -> None:
                     thread_sleep(float(PROXY_CHECK_RECHECK_TIME))
                 timer = ltime()
                 try:
-                    r = cs.request(method='GET', url=target_addr, timeout=PROXY_CHECK_TIMEOUT)
-                    res_delay = ltime() - timer
-                    r.close()
-                    if r.ok is False:
-                        raise HTTPError(response=r)
-                    r.raise_for_status()
-                    res_acc = 200
-                    suc = True
+                    with cs.request(method='GET', url=target_addr, timeout=PROXY_CHECK_TIMEOUT) as r:
+                        res_delay = ltime() - timer
+                        if r.ok is False:
+                            raise HTTPError(response=r)
+                        r.raise_for_status()
+                        res_acc = 200
+                        suc = True
                 except (KeyboardInterrupt, SystemExit) as err:
                     raise err
                 except (HTTPError, ProxyError) as err:
@@ -125,13 +123,13 @@ def check_proxy(px: str) -> None:
                     suc = False
                     if err.response.status_code == 503:
                         # res_delay = -1.0
-                        # res_acc = 503
-                        # suc = True
+                        res_acc = 503
+                        suc = True
                         pass
                     elif err.response.status_code == 509:
                         # res_delay = -1.0
-                        # res_acc = 509
-                        # suc = True
+                        res_acc = 509
+                        suc = True
                         pass
                     elif __DEBUG:
                         s_print(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
@@ -142,17 +140,17 @@ def check_proxy(px: str) -> None:
                     if __DEBUG:
                         s_print(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
 
-                with result_lock:
-                    if cur_prox:
-                        cur_prox.delay.append(res_delay)
-                        cur_prox.accessibility.append(res_acc)
-                        cur_prox.suc_count += 1 if suc is True else 0
-                        # will be filtered out anyways
-                        if not suc and ((n + 1) - cur_prox.suc_count >= PROXY_CHECK_UNSUCCESS_LIMIT):
-                            # s_print(('%s - unsuccess count reached!' % px))
-                            cur_prox.finalize()
-                            break
-                    else:
+                if cur_prox is not None:
+                    cur_prox.delay.append(res_delay)
+                    cur_prox.accessibility.append(res_acc)
+                    cur_prox.suc_count += 1 if suc is True else 0
+                    # will be filtered out anyways
+                    if not suc and ((n + 1) - cur_prox.suc_count >= PROXY_CHECK_UNSUCCESS_LIMIT):
+                        # s_print(('%s - unsuccess count reached!' % px))
+                        cur_prox.finalize()
+                        break
+                else:
+                    with result_lock:
                         cur_prox = _ProxyStruct(ptype=ptype, addr=px, delay=res_delay, accessibility=res_acc, success=suc)
                         cur_prox.start_time = total_timer
 

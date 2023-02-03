@@ -11,6 +11,7 @@ from re import search as re_search
 from sys import argv
 from threading import Thread
 from time import time as ltime, sleep as thread_sleep
+from typing import List
 from urllib.parse import urlparse
 
 from requests import Session
@@ -131,19 +132,17 @@ def run_main() -> None:
 
     print('\nCompleted. Filtering out useless entries...')
 
-    results = list(px_tester.results.values())
+    # noinspection PyProtectedMember
+    results = list(px_tester.results.values())  # type: List[px_tester._ProxyStruct]
 
     oldlen = len(results)
-    i = 0
-    while i < len(results):
-        # noinspection PyProtectedMember
-        res = results[i]  # type: px_tester._ProxyStruct
+    for i in reversed(range(len(results))):
+        res = results[i]
         if sum(res.accessibility) == 0:
-            results.pop(i)
+            del results[i]
             continue
         if not res.finalized:
             res.finalize()
-        i += 1
     print(f'Filtered {oldlen - len(results):d} / {oldlen:d} entries.\n\nSorting...')
 
     t_results = []
