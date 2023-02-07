@@ -78,7 +78,7 @@ class _ProxyStruct():
 
     def __str__(self) -> str:
         return (f'({self.ptype}) {self._addr} ({self.average_delay:.3f}s) - {self.suc_count:d}/'
-                f'{PROXY_CHECK_TRIES:d} in {self._total_time:.2f}s [{", ".join([str(a) for a in self.accessibility])}]')
+                f'{PROXY_CHECK_TRIES:d} in {self._total_time:.2f}s [{",".join([str(a) for a in self.accessibility])}]')
 
 
 def check_proxy(px: str) -> None:
