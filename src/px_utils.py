@@ -13,7 +13,7 @@ print_lock = ThreadLock()
 useragent = 'Mozilla/5.0 (X11; Linux i686; rv:102.0) Gecko/20100101 Firefox/102.0'
 
 
-def s_print(msg: str) -> None:
+def print_s(msg: str) -> None:
     with print_lock:
         print(msg)
 
