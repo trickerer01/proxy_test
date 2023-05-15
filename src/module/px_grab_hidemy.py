@@ -15,13 +15,13 @@ from bs4 import BeautifulSoup
 from iteration_utilities import unique_everseen
 from requests import Session
 
-from px_utils import useragent
+from px_ua import random_useragent
 
 ENABLED = True
 
 my_result = ''
 
-default_headers = {'User-Agent': useragent, 'Host': 'hidemy.name'}
+default_headers = {'User-Agent': random_useragent(), 'Host': 'hidemy.name'}
 
 proxylist_addr = 'https://hidemy.name/en/proxy-list/?start='
 per_page = 64

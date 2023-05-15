@@ -11,18 +11,20 @@ from sys import exc_info
 from threading import Lock as ThreadLock
 from time import time as ltime, sleep as thread_sleep
 from typing import Dict, Set
+from urllib.parse import urlparse
 
 from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.exceptions import HTTPError, ProxyError
 
-from px_utils import print_s, useragent
+from px_ua import random_useragent
+from px_utils import print_s
 
 __DEBUG = False
 
 CHECKLIST_RESPONSE_THRESHOLD = 4.0
 
-PROXY_CHECK_POOL = 100
+PROXY_CHECK_POOL = 20
 PROXY_CHECK_TRIES = 5
 PROXY_CHECK_UNSUCCESS_LIMIT = 3
 PROXY_CHECK_RECHECK_TIME = 2
@@ -33,9 +35,8 @@ PTYPE_HTTP = 'http'
 
 EXTRA_ACCEPTED_CODES = {403, 503, 509}
 
-default_headers = {'User-Agent': useragent}
-
 target_addr = ''
+target_host = ''
 
 results = {}  # type: Dict[str, _ProxyStruct]
 
@@ -44,7 +45,9 @@ result_lock = ThreadLock()
 
 def set_target_addr(addr: str) -> None:
     global target_addr
+    global target_host
     target_addr = addr
+    target_host = urlparse(addr).netloc
 
 
 def get_target_addr() -> str:
@@ -101,8 +104,19 @@ class _ProxyStruct():
 def check_proxy(px: str) -> None:
     cur_prox = None
     with Session() as cs:
+        cs.keep_alive = True
+        cs.adapters.clear()
+        cs.mount('http://', HTTPAdapter(pool_maxsize=1, max_retries=0))
+        cs.mount('https://', HTTPAdapter(pool_maxsize=1, max_retries=0))
+        headers = {'Host': target_host,
+                   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                   'Accept-Language': 'en-US,en;q=0.5',
+                   'Accept-Encoding': 'gzip, deflate, br',
+                   'DNT': '1',
+                   'Connection': 'keep-alive'}
+        cs.headers.update(headers.copy())
         for is_socks in [False, True]:
-            if is_socks and cur_prox is not None and cur_prox.finalized is True and cur_prox.accessibility.index(200) >= 0:
+            if is_socks is True and cur_prox is not None and cur_prox.finalized is True and cur_prox.accessibility.index(200) >= 0:
                 break  # do not check socks proxy if http one is valid
 
             ptype = PTYPE_SOCKS if is_socks is True else PTYPE_HTTP
@@ -110,11 +124,7 @@ def check_proxy(px: str) -> None:
             if prox_key(ptype, px) in results.keys():
                 continue
 
-            cs.keep_alive = True
-            cs.adapters.clear()
-            cs.mount('http://', HTTPAdapter(pool_maxsize=1, max_retries=0))
-            cs.mount('https://', HTTPAdapter(pool_maxsize=1, max_retries=0))
-            cs.headers.update(default_headers.copy())
+            cs.headers.update({'User-Agent': random_useragent()})
             cs.proxies.update({'all': f'{ptype}://{px}'})
 
             cur_prox = None

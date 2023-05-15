@@ -12,13 +12,13 @@ from bs4 import BeautifulSoup
 from iteration_utilities import unique_everseen
 from requests import Session
 
-from px_utils import useragent
+from px_ua import random_useragent
 
 ENABLED = True
 
 my_result = ''
 
-default_headers = {'User-Agent': useragent, 'Host': 'free-proxy.cz'}
+default_headers = {'User-Agent': random_useragent(), 'Host': 'free-proxy.cz'}
 
 proxylist_addr = 'http://free-proxy.cz/en/proxylist/country/all/http/ping/level'
 proxylist_lvls = ['1', '2']

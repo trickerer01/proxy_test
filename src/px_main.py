@@ -70,7 +70,6 @@ def parse_target() -> None:
 
 
 def cycle_results() -> None:
-
     try:
         while True:
             if exiting:
