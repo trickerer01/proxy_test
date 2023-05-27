@@ -23,7 +23,6 @@ from px_tester import (
 )
 from px_utils import print_s, module_name_short
 
-out_file_raw = '!px_list_raw.txt'
 out_file = '!px_list_results.txt'
 
 exiting = False
@@ -104,9 +103,6 @@ def run_main() -> None:
     if len(all_prox_str) <= 1:
         print('\nNo proxies found, aborting...')
         return
-
-    # print('\nSaving proxy list...')
-    # px_utils.storefile(out_file_raw, all_prox_str)
 
     print('\nBuilding checklist...')
     all_prox_set = build_proxy_list(all_prox_str)
