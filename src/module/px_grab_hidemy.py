@@ -12,7 +12,6 @@ from threading import Lock as ThreadLock
 from time import sleep as thread_sleep
 
 from bs4 import BeautifulSoup
-from iteration_utilities import unique_everseen
 from requests import Session
 
 from px_ua import random_useragent
@@ -21,9 +20,8 @@ ENABLED = True
 
 my_result = ''
 
-default_headers = {'User-Agent': random_useragent(), 'Host': 'hidemy.name'}
-
-proxylist_addr = 'https://hidemy.name/en/proxy-list/?start='
+proxylist_addr = 'https://hidemy.name/en/proxy-list/'
+default_headers = {'User-Agent': random_useragent(), 'Host': 'hidemy.name', 'Referer': proxylist_addr, 'Connection': 'keep-alive'}
 per_page = 64
 add_port_re = re_compile(r'<tr><td>(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})</td><td>(\d{2,5})</td>')
 ptype_re = re_compile(r'<td>(SOCKS|HTTP)[^<]*<')
@@ -62,8 +60,8 @@ def grab_proxies() -> None:
     def get_and_proc_page(pagenum: int):
         try:
             if pagenum > 0:
-                page_s = str(pagenum * per_page)
-                r = cs.request('GET', url=(proxylist_addr + page_s), headers=default_headers, timeout=10)
+                start = pagenum * per_page
+                r = cs.request('POST', url=f'{proxylist_addr}?start={start:d}', timeout=10, data={'start': f'{start:d}'})
                 r.raise_for_status()
                 raw = BeautifulSoup(r.content, 'html.parser')
                 r.close()
@@ -77,20 +75,16 @@ def grab_proxies() -> None:
             pass
 
     with Session() as cs:
+        cs.headers.update(default_headers.copy())
         try:
-            preq = cs.request('GET', url=(proxylist_addr + '0'), headers=default_headers, timeout=10)
+            preq = cs.request('GET', url=f'{proxylist_addr}', timeout=10)
             preq.raise_for_status()
             res_raw = BeautifulSoup(preq.content, 'html.parser')
             preq.close()
 
             # <a href="/en/proxy-list/?start=2688#list">43</a>
-            pages = res_raw.find_all('a', attrs={'href': re_compile(r'^/en/proxy-list/\?start=\d+#list$')})
-            pages_u = list(unique_everseen(list(pages)))
-            i = 0
-            while i < len(pages_u):
-                pages_u[i] = int(pages_u[i].contents[0] if len(pages_u[i].contents) > 0 else 0)
-                i += 1
-            num_pages = max(pages_u)
+            # pages = res_raw.find_all('a', attrs={'href': re_compile(r'^/en/proxy-list/\?start=\d+#list$')})
+            num_pages = 1  # list(sorted(list(int(p.contents[0] if len(p.contents) > 0 else 0) for p in pages)))[-1]
 
             pool = Pool(5)
             ress = []

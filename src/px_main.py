@@ -91,7 +91,7 @@ def cycle_results() -> None:
 def run_main() -> None:
     global exiting
 
-    print(f'\nEnabled modules:{" ".join(module_name_short(modul) for modul in MODULES)}')
+    print(f'\nEnabled modules: {" ".join(module_name_short(modul) for modul in MODULES)}')
 
     parse_target()
 
