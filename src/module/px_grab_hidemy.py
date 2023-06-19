@@ -86,7 +86,7 @@ def grab_proxies() -> None:
             # pages = res_raw.find_all('a', attrs={'href': re_compile(r'^/en/proxy-list/\?start=\d+#list$')})
             num_pages = 1  # list(sorted(list(int(p.contents[0] if len(p.contents) > 0 else 0) for p in pages)))[-1]
 
-            pool = Pool(5)
+            pool = Pool(min(5, num_pages))
             ress = []
             for i in range(num_pages):
                 ress.append(pool.apply_async(get_and_proc_page, args=(i,)))
