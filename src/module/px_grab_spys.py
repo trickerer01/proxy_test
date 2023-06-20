@@ -76,7 +76,7 @@ def grab_proxies() -> None:
                     port = ''.join(exprs)
                     rows[ri] = f'{ip}:{port}'
 
-                my_result += ''.join([format_proxy(s) for s in rows])
+                my_result += ''.join(format_proxy(s) for s in rows)
         except Exception:
             pass
 

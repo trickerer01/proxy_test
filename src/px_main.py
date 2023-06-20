@@ -124,7 +124,7 @@ def run_main() -> None:
     print('\nCompleted. Filtering out useless entries...')
     proxy_finals = list(reversed(sorted(reversed(sorted(results.values(), key=lambda ures: ures.addr)), key=lambda ures: ures.suc_count)))
     oldlen = len(proxy_finals)
-    for i in reversed(range(len(proxy_finals))):
+    for i in reversed(range(len(proxy_finals))):  # type: int
         res = proxy_finals[i]
         if sum(res.accessibility) == 0 or res.suc_count <= (PROXY_CHECK_TRIES - PROXY_CHECK_UNSUCCESS_LIMIT):
             del proxy_finals[i]

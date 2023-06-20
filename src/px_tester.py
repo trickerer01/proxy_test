@@ -38,7 +38,7 @@ EXTRA_ACCEPTED_CODES = {403, 503, 509}
 target_addr = ''
 target_host = ''
 
-results = {}  # type: Dict[str, _ProxyStruct]
+results = dict()  # type: Dict[str, _ProxyStruct]
 
 result_lock = ThreadLock()
 
@@ -81,6 +81,11 @@ class _ProxyStruct():
 
     def finalize(self) -> None:
         # average delay should only be counted from valid delays
+        while len(self.accessibility) < PROXY_CHECK_TRIES:
+            self.accessibility.append(0)
+        while len(self.delay) < PROXY_CHECK_TRIES:
+            self.delay.append(self.delay[-1] if len(self.delay) > 0 else CHECKLIST_RESPONSE_THRESHOLD)
+
         average_delay = 0.0
 
         valid_delays = 0
@@ -115,7 +120,7 @@ def check_proxy(px: str) -> None:
                    'DNT': '1',
                    'Connection': 'keep-alive'}
         cs.headers.update(headers.copy())
-        for is_socks in [False, True]:
+        for is_socks in (False, True):
             if is_socks is True and cur_prox is not None and cur_prox.finalized is True and cur_prox.accessibility.index(200) >= 0:
                 break  # do not check socks proxy if http one is valid
 
