@@ -12,14 +12,14 @@ from module import (
     px_grab_fate as pg_fate,
     px_grab_freeproxy as pg_fp,
     px_grab_freeproxylist as pg_fpl,
-    px_grab_hidemy as pg_hid,
+    px_grab_hidemyna as pg_hid,
     px_grab_proxylist as pg_pl,
     px_grab_txt as pg_txt,
     px_grab_spys as pg_sps
 )
 from px_utils import module_name_short
 
-MODULES = [
+MODULES = (
     pg_fate,
     pg_fp,
     pg_fpl,
@@ -27,7 +27,7 @@ MODULES = [
     pg_pl,
     pg_txt,
     pg_sps
-]
+)
 
 
 def fetch_all() -> str:

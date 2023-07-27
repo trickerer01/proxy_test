@@ -18,8 +18,8 @@ from requests.exceptions import HTTPError, ConnectionError
 from px_builder import build_proxy_list
 from px_grabber import fetch_all, MODULES
 from px_tester import (
-    get_target_addr, set_target_addr, result_lock, results, PROXY_CHECK_UNSUCCESS_LIMIT, PROXY_CHECK_TIMEOUT, PROXY_CHECK_RECHECK_TIME,
-    PROXY_CHECK_POOL, PROXY_CHECK_TRIES, check_proxies,
+    get_target_addrs, set_target_addr, result_lock, results, PROXY_CHECK_UNSUCCESS_LIMIT, PROXY_CHECK_TIMEOUT, PROXY_CHECK_RECHECK_TIME,
+    PROXY_CHECK_POOL, PROXY_CHECK_TRIES, RANGE_MARKER, check_proxies,
 )
 from px_utils import print_s, module_name_short
 
@@ -42,20 +42,20 @@ def parse_target() -> None:
     else:
         set_target_addr(argv[1])
 
-    if len(get_target_addr()) < 4:
+    if len(get_target_addrs()) < 4:
         _exit('\nError. Usage: px_test TARGET_ADDRESS', -3)
 
     try:
-        urlparse(get_target_addr())
+        urlparse(get_target_addrs()[0])
     except Exception:
-        print(f'\nInvalid address \'{get_target_addr()}\'!')
+        print(f'\nInvalid address \'{get_target_addrs()}\'!')
         raise
 
-    print(get_target_addr())
+    print('\n'.join(get_target_addrs()) if get_target_addrs()[0] != get_target_addrs()[1] else get_target_addrs()[0])
 
     with Session() as s:
         try:
-            r = s.request('HEAD', get_target_addr(), timeout=5)
+            r = s.request('HEAD', get_target_addrs()[0], timeout=5)
             r.raise_for_status()
             r.close()
         except HTTPError as err:
@@ -92,6 +92,7 @@ def run_main() -> None:
     global exiting
 
     print(f'\nEnabled modules: {" ".join(module_name_short(modul) for modul in MODULES)}')
+    print(f'Range marker: \'{RANGE_MARKER}\', {PROXY_CHECK_TRIES} queries. Example: \'https://example.com/$2-6$\'')
 
     parse_target()
 

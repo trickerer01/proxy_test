@@ -20,8 +20,8 @@ ENABLED = True
 
 my_result = ''
 
-proxylist_addr = 'https://hidemy.name/en/proxy-list/'
-default_headers = {'User-Agent': random_useragent(), 'Host': 'hidemy.name', 'Referer': proxylist_addr, 'Connection': 'keep-alive'}
+proxylist_addr = 'https://hidemyna.me/en/proxy-list/'
+default_headers = {'User-Agent': random_useragent(), 'Host': 'hidemyna.me', 'Referer': proxylist_addr, 'Connection': 'keep-alive'}
 per_page = 64
 add_port_re = re_compile(r'<tr><td>(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})</td><td>(\d{2,5})</td>')
 ptype_re = re_compile(r'<td>(SOCKS|HTTP)[^<]*<')
@@ -37,7 +37,6 @@ def format_prox(proxline: str) -> str:
 
 
 def grab_proxies() -> None:
-
     def proc_page(raw: BeautifulSoup) -> None:
         global my_result
         try:
