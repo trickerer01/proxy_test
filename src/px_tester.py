@@ -134,7 +134,7 @@ def check_proxy(px: str) -> None:
                     continue
 
             cs.headers.update({'User-Agent': random_useragent()})
-            cs.proxies.update({'all': f'{ptype}://{px}'})
+            cs.proxies.update({'http': f'{ptype}://{px}', 'https': f'{ptype}://{px}'})
 
             my_addrs = target_addrs.copy()
             shuffle(my_addrs)
