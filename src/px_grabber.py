@@ -15,7 +15,7 @@ from module import (
     px_grab_hidemyna as pg_hid,
     px_grab_proxylist as pg_pl,
     px_grab_txt as pg_txt,
-    px_grab_spys as pg_sps
+    px_grab_spys as pg_sps,
 )
 from px_utils import module_name_short
 
@@ -26,7 +26,7 @@ MODULES = (
     pg_hid,
     pg_pl,
     pg_txt,
-    pg_sps
+    pg_sps,
 )
 
 

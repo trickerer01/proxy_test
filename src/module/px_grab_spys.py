@@ -38,7 +38,7 @@ def grab_proxies() -> None:
     with Session() as cs:
         cs.headers.update(default_headers.copy())
         try:
-            for ptype in ['1', '2']:  # ptype 1 = http, 2 = socks5,
+            for ptype in ('1', '2'):  # ptype 1 = http, 2 = socks5,
                 preq = cs.request('POST', url=proxylist_addr, timeout=10,
                                   data={'xpp': '5', 'xf1': '0', 'xf2': '0', 'xf4': '0', 'xf5': ptype})  # xpp 4 = 300, 5 = 500 (max)
                 preq.raise_for_status()

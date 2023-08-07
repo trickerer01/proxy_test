@@ -37,12 +37,12 @@ HEADERS = {
     'Accept-Language': 'en-US,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate, br',
     'DNT': '1',
-    'Connection': 'keep-alive'
+    'Connection': 'keep-alive',
 }
 
 RANGE_MARKER = f'$%d-%d$'
 BL = '\\'
-RANGE_MARKER_RE = RANGE_MARKER.replace("%d", f"({BL}d)").replace("-", f"{BL}-").replace("$", f"{BL}$")
+RANGE_MARKER_RE = RANGE_MARKER.replace("%d", f"({BL}d+)").replace("-", f"{BL}-").replace("$", f"{BL}$")
 
 EXTRA_ACCEPTED_CODES = {403, 503, 509}
 
@@ -145,7 +145,7 @@ def check_proxy(px: str) -> None:
                     thread_sleep(float(PROXY_CHECK_RECHECK_TIME))
                 timer = ltime()
                 try:
-                    with cs.request(method='GET', url=my_addrs[n], timeout=PROXY_CHECK_TIMEOUT) as r:
+                    with cs.request('GET', my_addrs[n], timeout=PROXY_CHECK_TIMEOUT) as r:
                         res_delay = ltime() - timer
                         if r.ok is False or r.status_code != 200:
                             raise HTTPError(response=r)
