@@ -11,7 +11,7 @@ from random import shuffle
 from sys import exc_info
 from threading import Lock as ThreadLock
 from time import time as ltime, sleep as thread_sleep
-from typing import Dict, Set, List
+from typing import Dict, Set, List, Optional
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -20,14 +20,19 @@ from requests.exceptions import HTTPError, ProxyError, ConnectionError
 from px_ua import random_useragent
 from px_utils import print_s
 
+__all__ = (
+    'check_proxies', 'get_target_addrs', 'set_target_addr', 'result_lock', 'results', 'PROXY_CHECK_UNSUCCESS_THRESHOLD',
+    'PROXY_CHECK_TIMEOUT', 'PROXY_CHECK_RECHECK_TIME', 'PROXY_CHECK_POOL', 'PROXY_CHECK_TRIES', 'RANGE_MARKER', '__DEBUG',
+)
+
 __DEBUG = False
 
 CHECKLIST_RESPONSE_THRESHOLD = 4.0
-PROXY_CHECK_POOL = 20
+PROXY_CHECK_POOL = 40
 PROXY_CHECK_TRIES = 5
-PROXY_CHECK_UNSUCCESS_LIMIT = 3
-PROXY_CHECK_RECHECK_TIME = 2
-PROXY_CHECK_TIMEOUT = max(int(CHECKLIST_RESPONSE_THRESHOLD) + 2, 8)
+PROXY_CHECK_UNSUCCESS_THRESHOLD = 3
+PROXY_CHECK_RECHECK_TIME = 3.0
+PROXY_CHECK_TIMEOUT = max(int(CHECKLIST_RESPONSE_THRESHOLD) + 2, 10)
 
 PTYPE_SOCKS = 'socks5'
 PTYPE_HTTP = 'http'
@@ -44,7 +49,11 @@ RANGE_MARKER = f'$%d-%d$'
 BL = '\\'
 RANGE_MARKER_RE = RANGE_MARKER.replace("%d", f"({BL}d+)").replace("-", f"{BL}-").replace("$", f"{BL}$")
 
-EXTRA_ACCEPTED_CODES = {403, 503, 509}
+STATUS_OK = 200
+STATUS_FORBIDDEN = 403
+STATUS_SERVICE_UNAVAILABLE = 503
+STATUS_BANDWITH_EXCEEDED = 509
+EXTRA_ACCEPTED_CODES = {STATUS_FORBIDDEN, STATUS_SERVICE_UNAVAILABLE, STATUS_BANDWITH_EXCEEDED}
 
 target_addr = ''
 target_addrs = []  # type: List[str]
@@ -116,7 +125,7 @@ class _ProxyStruct():
 
 
 def check_proxy(px: str) -> None:
-    cur_prox = None
+    cur_prox = None  # type: Optional[_ProxyStruct]
     with Session() as cs:
         cs.keep_alive = True
         cs.adapters.clear()
@@ -125,7 +134,7 @@ def check_proxy(px: str) -> None:
         cs.headers.update(HEADERS.copy())
 
         for is_socks in (False, True):
-            if is_socks is True and cur_prox is not None and cur_prox.finalized is True and cur_prox.accessibility.index(200) >= 0:
+            if cur_prox is not None and is_socks and cur_prox.finalized and STATUS_OK in cur_prox.accessibility:
                 break  # do not check socks proxy if http one is valid
 
             ptype = PTYPE_SOCKS if is_socks is True else PTYPE_HTTP
@@ -134,7 +143,7 @@ def check_proxy(px: str) -> None:
                     continue
 
             cs.headers.update({'User-Agent': random_useragent()})
-            cs.proxies.update({'http': f'{ptype}://{px}', 'https': f'{ptype}://{px}'})
+            cs.proxies.update({'all': f'{ptype}://{px}'})
 
             my_addrs = target_addrs.copy()
             shuffle(my_addrs)
@@ -142,21 +151,21 @@ def check_proxy(px: str) -> None:
             cur_time = ltime()
             for n in range(PROXY_CHECK_TRIES):
                 if n > 0:
-                    thread_sleep(float(PROXY_CHECK_RECHECK_TIME))
+                    thread_sleep(PROXY_CHECK_RECHECK_TIME)
                 timer = ltime()
                 try:
                     with cs.request('GET', my_addrs[n], timeout=PROXY_CHECK_TIMEOUT) as r:
                         res_delay = ltime() - timer
-                        if r.ok is False or r.status_code != 200:
+                        if r.ok is False or r.status_code != STATUS_OK:
                             raise HTTPError(response=r)
                         r.raise_for_status()
-                        res_acc = 200
+                        res_acc = STATUS_OK
                         suc = True
                 except (KeyboardInterrupt, SystemExit):
                     raise
                 except (HTTPError, ProxyError, ConnectionError) as err:
                     res_delay = ltime() - timer
-                    res_acc = 0
+                    res_acc = -1
                     suc = False
                     if err.response.status_code in EXTRA_ACCEPTED_CODES:
                         res_acc = err.response.status_code
@@ -164,7 +173,7 @@ def check_proxy(px: str) -> None:
                     elif __DEBUG:
                         print_s(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
                 except Exception:
-                    res_acc = 0
+                    res_acc = -2
                     suc = False
                     if __DEBUG:
                         print_s(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
@@ -173,14 +182,15 @@ def check_proxy(px: str) -> None:
                     cur_prox.delay.append(res_delay)
                     cur_prox.accessibility.append(res_acc)
                     cur_prox.suc_count += 1 if suc is True else 0
-                    if suc is False and ((n + 1) - cur_prox.suc_count) >= PROXY_CHECK_UNSUCCESS_LIMIT:
+                    if suc is False and n + 1 - cur_prox.suc_count >= PROXY_CHECK_UNSUCCESS_THRESHOLD:
                         cur_prox.finalize()
                         break
                 else:
                     cur_prox = _ProxyStruct(ptype=ptype, addr=px, delay=res_delay, accessibility=res_acc, success=suc, start=cur_time)
 
             if cur_prox:
-                cur_prox.finalize()
+                if cur_prox.finalized is False:
+                    cur_prox.finalize()
             else:
                 print_s(f'error214 - proxy {px} not found - not finalized')
 

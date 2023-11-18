@@ -18,10 +18,12 @@ from requests.exceptions import HTTPError, ConnectionError
 from px_builder import build_proxy_list
 from px_grabber import fetch_all, MODULES
 from px_tester import (
-    get_target_addrs, set_target_addr, result_lock, results, PROXY_CHECK_UNSUCCESS_LIMIT, PROXY_CHECK_TIMEOUT, PROXY_CHECK_RECHECK_TIME,
-    PROXY_CHECK_POOL, PROXY_CHECK_TRIES, RANGE_MARKER, check_proxies,
+    check_proxies, get_target_addrs, set_target_addr, result_lock, results, PROXY_CHECK_UNSUCCESS_THRESHOLD, PROXY_CHECK_TIMEOUT,
+    PROXY_CHECK_RECHECK_TIME, PROXY_CHECK_POOL, PROXY_CHECK_TRIES, RANGE_MARKER,
 )
 from px_utils import print_s, module_name_short
+
+__all__ = ()
 
 out_file = '!px_list_results.txt'
 
@@ -80,7 +82,7 @@ def cycle_results() -> None:
                 for res in results.values():
                     if res.finalized and not res.done:
                         res.done = True
-                        if sum(res.accessibility) == 0 or res.suc_count < PROXY_CHECK_UNSUCCESS_LIMIT:
+                        if sum(res.accessibility) == 0 or res.suc_count < PROXY_CHECK_UNSUCCESS_THRESHOLD:
                             continue
                         print(str(res))
 
@@ -127,7 +129,7 @@ def run_main() -> None:
     oldlen = len(proxy_finals)
     for i in reversed(range(len(proxy_finals))):  # type: int
         res = proxy_finals[i]
-        if sum(res.accessibility) == 0 or res.suc_count <= (PROXY_CHECK_TRIES - PROXY_CHECK_UNSUCCESS_LIMIT):
+        if sum(res.accessibility) == 0 or res.suc_count <= (PROXY_CHECK_TRIES - PROXY_CHECK_UNSUCCESS_THRESHOLD):
             del proxy_finals[i]
             continue
         if not res.finalized:
