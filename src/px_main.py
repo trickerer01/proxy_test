@@ -71,23 +71,17 @@ def parse_target() -> None:
 
 
 def cycle_results() -> None:
-    try:
-        while True:
-            if exiting:
-                break
-
-            thread_sleep(0.25)
-
-            with result_lock:
-                for res in results.values():
-                    if res.finalized and not res.done:
-                        res.done = True
-                        if sum(res.accessibility) == 0 or res.suc_count < PROXY_CHECK_UNSUCCESS_THRESHOLD:
-                            continue
-                        print(str(res))
-
-    except Exception as err:
-        raise err
+    while True:
+        if exiting:
+            break
+        thread_sleep(0.25)
+        with result_lock:
+            for res in results.values():
+                if res.finalized and not res.done:
+                    res.done = True
+                    if sum(res.accessibility) == 0 or res.suc_count < PROXY_CHECK_UNSUCCESS_THRESHOLD:
+                        continue
+                    print(str(res))
 
 
 def run_main() -> None:

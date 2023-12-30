@@ -45,7 +45,7 @@ HEADERS = {
     'Connection': 'keep-alive',
 }
 
-RANGE_MARKER = f'$%d-%d$'
+RANGE_MARKER = '$%d-%d$'
 BL = '\\'
 RANGE_MARKER_RE = RANGE_MARKER.replace("%d", f"({BL}d+)").replace("-", f"{BL}-").replace("$", f"{BL}$")
 
@@ -196,13 +196,10 @@ def check_proxy(px: str) -> None:
 
 
 def check_proxies(proxlist: Set[str]) -> None:
-    try:
-        pool = Pool(PROXY_CHECK_POOL)
-        pool.map_async(check_proxy, proxlist, 1)
-        pool.close()
-        pool.join()
-    except Exception as err:
-        raise err
+    pool = Pool(PROXY_CHECK_POOL)
+    pool.map_async(check_proxy, proxlist, 1)
+    pool.close()
+    pool.join()
 
 #
 #
