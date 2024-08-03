@@ -47,9 +47,9 @@ def grab_proxies() -> None:
                 p, x = tuple(re_search(r'}\((\'[^.]+)', content_str).group(1).split(',60,60,'))
                 p_exec, symbols = p[1:-2], x[1:-1].split('^')
                 chr_arr = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX'  # const
-                chars_to_symbols = {chr_arr[i]: symbols[i] or chr_arr[i] for i in range(len(chr_arr))}  # type: Dict[str, str]
+                chars_to_symbols: Dict[str, str] = {chr_arr[i]: symbols[i] or chr_arr[i] for i in range(len(chr_arr))}
                 p_exec = re_sub(r'\b(\w+)\b', lambda w: chars_to_symbols.get(w.group(1)) or '0', p_exec)
-                vals = dict()  # type: Dict[str, str]
+                vals = dict()
                 for s in p_exec.split(';'):
                     k, v = tuple(s.split('=', 1))
                     val = 0

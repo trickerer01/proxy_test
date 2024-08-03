@@ -56,34 +56,8 @@ STATUS_BANDWITH_EXCEEDED = 509
 EXTRA_ACCEPTED_CODES = {STATUS_FORBIDDEN, STATUS_SERVICE_UNAVAILABLE, STATUS_BANDWITH_EXCEEDED}
 
 target_addr = ''
-target_addrs = []  # type: List[str]
-results = dict()  # type: Dict[str, _ProxyStruct]
+target_addrs: List[str] = []
 result_lock = ThreadLock()
-
-
-def set_target_addr(addr: str) -> None:
-    from re import fullmatch
-    global target_addr
-    target_addr = addr
-    # form queries if addr contains range
-    gs = fullmatch(fr'^.+{RANGE_MARKER_RE}.*?$', target_addr)
-    if gs:
-        n1, n2 = int(gs.group(1)), int(gs.group(2))
-        assert n1 + PROXY_CHECK_TRIES - 1 == n2
-        for i in range(PROXY_CHECK_TRIES):
-            target_addrs.append(target_addr.replace(RANGE_MARKER % (n1, n2), f'{n1 + i:d}'))
-    else:
-        for _ in range(PROXY_CHECK_TRIES):
-            target_addrs.append(target_addr)
-    assert len(target_addrs) == PROXY_CHECK_TRIES
-
-
-def get_target_addrs() -> List[str]:
-    return target_addrs
-
-
-def prox_key(ptype: str, addr: str) -> str:
-    return f'({ptype}) {addr}'
 
 
 class _ProxyStruct():
@@ -124,8 +98,36 @@ class _ProxyStruct():
                 f'{PROXY_CHECK_TRIES:d} in {self._total_time:.2f}s [{",".join([str(a) for a in self.accessibility])}]')
 
 
+results: Dict[str, _ProxyStruct] = dict()
+
+
+def set_target_addr(addr: str) -> None:
+    from re import fullmatch
+    global target_addr
+    target_addr = addr
+    # form queries if addr contains range
+    gs = fullmatch(fr'^.+{RANGE_MARKER_RE}.*?$', target_addr)
+    if gs:
+        n1, n2 = int(gs.group(1)), int(gs.group(2))
+        assert n1 + PROXY_CHECK_TRIES - 1 == n2
+        for i in range(PROXY_CHECK_TRIES):
+            target_addrs.append(target_addr.replace(RANGE_MARKER % (n1, n2), f'{n1 + i:d}'))
+    else:
+        for _ in range(PROXY_CHECK_TRIES):
+            target_addrs.append(target_addr)
+    assert len(target_addrs) == PROXY_CHECK_TRIES
+
+
+def get_target_addrs() -> List[str]:
+    return target_addrs
+
+
+def prox_key(ptype: str, addr: str) -> str:
+    return f'({ptype}) {addr}'
+
+
 def check_proxy(px: str) -> None:
-    cur_prox = None  # type: Optional[_ProxyStruct]
+    cur_prox: Optional[_ProxyStruct] = None
     with Session() as cs:
         cs.keep_alive = True
         cs.adapters.clear()
