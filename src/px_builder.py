@@ -23,20 +23,23 @@ def build_proxy_list(proxlist_str: str) -> Set[str]:
         drop = False
         addr = '0.0.0.0'
         port = '80'
+        pref = 'UNK'
         if len(res_raw[idx]) <= 1:
             drop = True
         if not drop:
-            addr_re = re_search(r'\"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\"\]', res_raw[idx])
+            addr_re = re_search(r'\"((?:http|socks5)://\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\"\]', res_raw[idx])
             port_re = re_search(r'\"port\": (\d+)', res_raw[idx])
+            pref_re = re_search(r'(\[[A-Z]{2,3}\])', res_raw[idx])
             if addr_re is None:  # "export_address": [],
                 drop = True
             else:
                 assert port_re is not None
                 addr = str(addr_re.group(1))
                 port = str(port_re.group(1))
+                pref = str(pref_re.group(1))
 
         if not drop:
-            checklist.add(f'{addr}:{port}')
+            checklist.add(f'{pref} {addr}:{port}')
         elif __DEBUG:
             print(f'dropped {res_raw[idx]}...')
 

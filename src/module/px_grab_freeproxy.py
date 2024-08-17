@@ -24,11 +24,11 @@ proxylist_addr = 'http://free-proxy.cz/en/proxylist/country/all/http/ping/level'
 proxylist_lvls = ['1', '2']
 
 
-# required format: {"export_address": ["3.210.193.173"], "port": 80}
+# required format: [PREFIX] {"export_address": ["type://3.210.193.173"], "port": 80}
 def format_prox(proxline: str) -> str:
     prox_addr = re_search(r'^decode\(\"([\d\w=]+)\"\)$', proxline).group(1)  # Base64.decode("MTQ5LjI0OC41MC4yMDY=")
     prox_port = re_search(r'^fport\" style=\\\'\\\'>(\d+)<$', proxline).group(1)  # <span class="fport" style=\'\'>3128</span>
-    prox_string = '{"export_address": ["' + prox_addr + '"], "port": ' + prox_port + '}'
+    prox_string = '[UNK] {"export_address": ["' + 'http://' + prox_addr + '"], "port": ' + prox_port + '}'
     return prox_string + '\n'
 
 

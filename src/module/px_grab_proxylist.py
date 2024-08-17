@@ -20,9 +20,9 @@ proxylist_pages = 10
 
 
 def format_proxy(proxline: str) -> str:
-    prox_addr = proxline[:proxline.find(':')]
-    prox_port = proxline[proxline.find(':') + 1:]
-    prox_string = '{"export_address": ["' + prox_addr + '"], "port": ' + prox_port + '}'
+    prox_addr = proxline[:proxline.rfind(':')]
+    prox_port = proxline[proxline.rfind(':') + 1:]
+    prox_string = '[UNK] {"export_address": ["' + 'http://' + prox_addr + '"], "port": ' + prox_port + '}'
     return prox_string + '\n'
 
 

@@ -61,8 +61,8 @@ result_lock = ThreadLock()
 
 
 class _ProxyStruct():
-    def __init__(self, ptype: str, addr: str, delay: float, accessibility: int, success: bool, start: float) -> None:
-        self.ptype = ptype
+    def __init__(self, prefix: str, addr: str, delay: float, accessibility: int, success: bool, start: float) -> None:
+        self.prefix = prefix
         self.addr = addr
         self.delay = [delay]
         self.accessibility = [accessibility]
@@ -71,7 +71,7 @@ class _ProxyStruct():
         self.done = self.finalized = False
         self.average_delay = self._total_time = 0.0
         with result_lock:
-            results[prox_key(ptype, addr)] = self
+            results[addr] = self
 
     def finalize(self) -> None:
         if self.finalized:
@@ -94,7 +94,7 @@ class _ProxyStruct():
         self.finalized = True
 
     def __str__(self) -> str:
-        return (f'({self.ptype}) {self.addr} ({self.average_delay:.3f}s) - {self.suc_count:d}/'
+        return (f'{self.prefix} {self.addr} ({self.average_delay:.3f}s) - {self.suc_count:d}/'
                 f'{PROXY_CHECK_TRIES:d} in {self._total_time:.2f}s [{",".join([str(a) for a in self.accessibility])}]')
 
 
@@ -122,79 +122,66 @@ def get_target_addrs() -> List[str]:
     return target_addrs
 
 
-def prox_key(ptype: str, addr: str) -> str:
-    return f'({ptype}) {addr}'
-
-
 def check_proxy(px: str) -> None:
-    cur_prox: Optional[_ProxyStruct] = None
+    prefix, px = tuple(px.split(' ', 1))
     with Session() as cs:
         cs.keep_alive = True
         cs.adapters.clear()
         cs.mount('http://', HTTPAdapter(pool_maxsize=1, max_retries=0))
         cs.mount('https://', HTTPAdapter(pool_maxsize=1, max_retries=0))
         cs.headers.update(HEADERS.copy())
+        cs.headers.update({'User-Agent': random_useragent()})
+        cs.proxies.update({'all': px})
 
-        for is_socks in (False, True):
-            if cur_prox is not None and is_socks and cur_prox.finalized and STATUS_OK in cur_prox.accessibility:
-                break  # do not check socks proxy if http one is valid
-
-            ptype = PTYPE_SOCKS if is_socks is True else PTYPE_HTTP
-            with result_lock:
-                if prox_key(ptype, px) in results.keys():
-                    continue
-
-            cs.headers.update({'User-Agent': random_useragent()})
-            cs.proxies.update({'all': f'{ptype}://{px}'})
-
-            my_addrs = target_addrs.copy()
-            shuffle(my_addrs)
-            cur_prox = None
-            cur_time = ltime()
-            for n in range(PROXY_CHECK_TRIES):
-                if n > 0:
-                    thread_sleep(PROXY_CHECK_RECHECK_TIME)
-                timer = ltime()
-                try:
-                    with cs.request('GET', my_addrs[n], timeout=PROXY_CHECK_TIMEOUT) as r:
-                        res_delay = ltime() - timer
-                        if r.ok is False or r.status_code != STATUS_OK:
-                            raise HTTPError(response=r)
-                        r.raise_for_status()
-                        res_acc = STATUS_OK
-                        suc = True
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except (HTTPError, ProxyError, ConnectionError) as err:
+        my_addrs = target_addrs.copy()
+        shuffle(my_addrs)
+        cur_prox: Optional[_ProxyStruct] = None
+        cur_time = ltime()
+        for n in range(PROXY_CHECK_TRIES):
+            if n > 0:
+                thread_sleep(PROXY_CHECK_RECHECK_TIME)
+            timer = ltime()
+            try:
+                with cs.request('GET', my_addrs[n], timeout=PROXY_CHECK_TIMEOUT) as r:
                     res_delay = ltime() - timer
-                    res_acc = -1
-                    suc = False
-                    if err.response.status_code in EXTRA_ACCEPTED_CODES:
-                        res_acc = err.response.status_code
-                        suc = True
-                    elif __DEBUG:
-                        print_s(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
-                except Exception:
-                    res_acc = -2
-                    suc = False
-                    if __DEBUG:
-                        print_s(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
+                    if r.ok is False or r.status_code != STATUS_OK:
+                        raise HTTPError(response=r)
+                    r.raise_for_status()
+                    res_acc = STATUS_OK
+                    suc = True
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except (HTTPError, ProxyError, ConnectionError) as err:
+                res_delay = ltime() - timer
+                res_acc = -1
+                suc = False
+                if err.response and err.response.status_code in EXTRA_ACCEPTED_CODES:
+                    res_acc = err.response.status_code
+                    suc = True
+                elif __DEBUG:
+                    print_s(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
+            except Exception:
+                res_delay = ltime() - timer
+                res_acc = -2
+                suc = False
+                if __DEBUG:
+                    print_s(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
 
-                if cur_prox is not None:
-                    cur_prox.delay.append(res_delay)
-                    cur_prox.accessibility.append(res_acc)
-                    cur_prox.suc_count += 1 if suc is True else 0
-                    if suc is False and n + 1 - cur_prox.suc_count >= PROXY_CHECK_UNSUCCESS_THRESHOLD:
-                        cur_prox.finalize()
-                        break
-                else:
-                    cur_prox = _ProxyStruct(ptype=ptype, addr=px, delay=res_delay, accessibility=res_acc, success=suc, start=cur_time)
-
-            if cur_prox:
-                if cur_prox.finalized is False:
+            if cur_prox is not None:
+                cur_prox.delay.append(res_delay)
+                cur_prox.accessibility.append(res_acc)
+                cur_prox.suc_count += 1 if suc is True else 0
+                if suc is False and n + 1 - cur_prox.suc_count >= PROXY_CHECK_UNSUCCESS_THRESHOLD:
                     cur_prox.finalize()
+                    break
             else:
-                print_s(f'error214 - proxy {px} not found - not finalized')
+                cur_prox = _ProxyStruct(prefix=prefix, addr=px, delay=res_delay, accessibility=res_acc, success=suc, start=cur_time)
+
+        if cur_prox:
+            if cur_prox.finalized is False:
+                cur_prox.finalize()
+        else:
+            print_s(f'error214 - proxy {px} not found - not finalized')
 
 
 def check_proxies(proxlist: Set[str]) -> None:

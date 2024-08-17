@@ -24,15 +24,15 @@ proxylist_addr = 'https://hidemyna.me/en/proxy-list/'
 default_headers = {'User-Agent': random_useragent(), 'Host': 'hidemyna.me', 'Referer': proxylist_addr, 'Connection': 'keep-alive'}
 per_page = 64
 add_port_re = re_compile(r'<tr><td>(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})</td><td>(\d{2,5})</td>')
-ptype_re = re_compile(r'<td>(SOCKS|HTTP)[^<]*<')
+ptype_re = re_compile(r'<td>(SOCKS5|HTTP)[^<]*<')
 myres_lock = ThreadLock()
 
 
-# required format: {"export_address": ["3.210.193.173"], "port": 80}
+# required format: [PREFIX] {"export_address": ["type://3.210.193.173"], "port": 80}
 def format_prox(proxline: str) -> str:
-    prox_addr = proxline[:proxline.find(':')]
-    prox_port = proxline[proxline.find(':') + 1:]
-    prox_string = '{"export_address": ["' + prox_addr + '"], "port": ' + prox_port + '}'
+    prox_addr = proxline[:proxline.rfind(':')]
+    prox_port = proxline[proxline.rfind(':') + 1:]
+    prox_string = '[UNK] {"export_address": ["' + prox_addr + '"], "port": ' + prox_port + '}'
     return prox_string + '\n'
 
 
@@ -50,7 +50,8 @@ def grab_proxies() -> None:
             idx = 0
             while idx < len(addr_port_results):
                 with myres_lock:
-                    my_result += format_prox(addr_port_results[idx][0] + ':' + addr_port_results[idx][1])
+                    my_result += format_prox(
+                        ptype_results[idx][0].lower() + '://' + addr_port_results[idx][0] + ':' + addr_port_results[idx][1])
                 idx += 1
 
         except Exception as err:

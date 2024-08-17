@@ -104,7 +104,8 @@ def run_main() -> None:
     print('\nBuilding checklist...')
     all_prox_set = build_proxy_list(all_prox_str)
 
-    proxy_check_time = (PROXY_CHECK_TIMEOUT + PROXY_CHECK_RECHECK_TIME) * (len(all_prox_set) // PROXY_CHECK_POOL + 1) * PROXY_CHECK_TRIES
+    proxy_check_time = int(
+        (PROXY_CHECK_TIMEOUT + PROXY_CHECK_RECHECK_TIME) * (len(all_prox_set) // PROXY_CHECK_POOL + 1) * PROXY_CHECK_TRIES)
     print(f'\nChecking {len(all_prox_set):d} proxies ({PROXY_CHECK_TRIES:d} queries). This may take {proxy_check_time:d}+ seconds')
 
     print('\nTimed List:')
