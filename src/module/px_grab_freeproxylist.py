@@ -25,7 +25,7 @@ def format_proxy(proxline: str) -> str:
     return prox_string + '\n'
 
 
-def grab_proxies() -> None:
+def grab_proxies(*_) -> None:
     global my_result
 
     with Session() as cs:

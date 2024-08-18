@@ -21,8 +21,9 @@ from px_ua import random_useragent
 from px_utils import print_s
 
 __all__ = (
-    'check_proxies', 'get_target_addrs', 'set_target_addr', 'result_lock', 'results', 'PROXY_CHECK_UNSUCCESS_THRESHOLD',
-    'PROXY_CHECK_TIMEOUT', 'PROXY_CHECK_RECHECK_TIME', 'PROXY_CHECK_POOL', 'PROXY_CHECK_TRIES', 'RANGE_MARKER', '__DEBUG',
+    'check_proxies', 'get_target_addrs', 'get_proxies_amount_factor', 'set_proxies_amount_factor', 'set_target_addr', 'result_lock',
+    'results', 'PROXY_CHECK_UNSUCCESS_THRESHOLD', 'PROXY_CHECK_TIMEOUT', 'PROXY_CHECK_RECHECK_TIME', 'PROXY_CHECK_POOL',
+    'PROXY_CHECK_TRIES', 'RANGE_MARKER', '__DEBUG',
 )
 
 __DEBUG = False
@@ -56,6 +57,7 @@ STATUS_BANDWITH_EXCEEDED = 509
 EXTRA_ACCEPTED_CODES = {STATUS_FORBIDDEN, STATUS_SERVICE_UNAVAILABLE, STATUS_BANDWITH_EXCEEDED}
 
 target_addr = ''
+proxies_amount_factor = 1
 target_addrs: List[str] = []
 result_lock = ThreadLock()
 
@@ -117,8 +119,20 @@ def set_target_addr(addr: str) -> None:
         target_addrs.append(target_addr)
 
 
+def set_proxies_amount_factor(amount: str) -> None:
+    global proxies_amount_factor
+    if not amount:
+        return
+    assert amount in '123456789', f'Invalid proxies amount factor value \'{amount}\'!'
+    proxies_amount_factor = int(amount)
+
+
 def get_target_addrs() -> List[str]:
     return target_addrs
+
+
+def get_proxies_amount_factor() -> int:
+    return proxies_amount_factor
 
 
 def check_proxy(px: str) -> None:

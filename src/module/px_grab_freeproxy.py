@@ -32,7 +32,7 @@ def format_prox(proxline: str) -> str:
     return prox_string + '\n'
 
 
-def grab_proxies() -> None:
+def grab_proxies(*_) -> None:
 
     def proc_page() -> None:
         global my_result

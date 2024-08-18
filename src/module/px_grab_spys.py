@@ -33,16 +33,18 @@ def format_proxy(proxline: str, ptype: str, prefix) -> str:
     return ''
 
 
-def grab_proxies() -> None:
+def grab_proxies(amount_factor: int) -> None:
     global my_result
 
     prox_types = {'1': 'http', '2': 'socks5'}
+    prox_prefs = ['US', 'SG', 'MX', 'DE', 'GB', 'BR', 'FR', 'HK', 'CO', 'TH', 'FI', 'JP', 'TR', 'ZA', 'EC', 'ID', 'KR', 'CN', 'PH',
+                  'EG', 'IN', 'VN', 'BD', 'CL', 'IR', 'ES', 'VE', 'NL', 'DO', 'AR', 'PE', 'CA', 'PL', 'PK', 'KH', 'TW', 'AU', 'KE',
+                  'IT', 'MY', 'SE', 'LY', 'IQ', 'HU', 'CZ', 'GT', 'HN']
+    prox_prefs_a = prox_prefs[:int(5.25 * amount_factor)]
 
     with Session() as cs:
         cs.headers.update(default_headers.copy())
-        for country in ('US', 'SG', 'MX', 'DE', 'GB', 'BR', 'FR', 'HK', 'CO', 'TH', 'FI', 'JP', 'TR', 'ZA', 'EC', 'ID', 'KR', 'CN', 'PH',
-                        'EG', 'IN', 'VN', 'BD', 'CL', 'IR', 'ES', 'VE', 'NL', 'DO', 'AR', 'PE', 'CA', 'PL', 'PK', 'KH', 'TW', 'AU', 'KE',
-                        'IT', 'MY', 'SE', 'LY', 'IQ', 'HU', 'CZ', 'GT', 'HN'):
+        for country in prox_prefs_a:
             for ptype in ('1', '2'):  # ptype 1 = http, 2 = socks5,
                 try:
                     print_s(f'spys: {country} {ptype}...')

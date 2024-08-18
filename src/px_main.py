@@ -18,8 +18,8 @@ from requests.exceptions import HTTPError, ConnectionError
 from px_builder import build_proxy_list
 from px_grabber import fetch_all, MODULES
 from px_tester import (
-    check_proxies, get_target_addrs, set_target_addr, result_lock, results, PROXY_CHECK_UNSUCCESS_THRESHOLD, PROXY_CHECK_TIMEOUT,
-    PROXY_CHECK_RECHECK_TIME, PROXY_CHECK_POOL, PROXY_CHECK_TRIES, RANGE_MARKER,
+    PROXY_CHECK_UNSUCCESS_THRESHOLD, PROXY_CHECK_TIMEOUT, PROXY_CHECK_RECHECK_TIME, PROXY_CHECK_POOL, PROXY_CHECK_TRIES, RANGE_MARKER,
+    set_target_addr, set_proxies_amount_factor, check_proxies, get_target_addrs, get_proxies_amount_factor, result_lock, results,
 )
 from px_utils import print_s, module_name_short
 
@@ -37,15 +37,19 @@ def _exit(msg: str, code: int) -> None:
 
 
 def parse_target() -> None:
-    if len(argv) > 2:
-        _exit('\nError. Usage: px_test TARGET_ADDRESS', -2)
+    usage_str = '\nError. Usage: px_test TARGET_ADDRESS [PROXIES_AMOUNT={1-9}]'
+    if len(argv) > 3:
+        _exit(usage_str, -2)
     elif len(argv) < 2:
         set_target_addr(input('\nEnter web address to test: '))
+        set_proxies_amount_factor(input('\nEnter proxies amount (1-9): '))
     else:
         set_target_addr(argv[1])
+        if len(argv) >= 3:
+            set_proxies_amount_factor(argv[2])
 
-    if len(get_target_addrs()) < 4:
-        _exit('\nError. Usage: px_test TARGET_ADDRESS', -3)
+    if not get_target_addrs():
+        _exit(usage_str, -3)
 
     try:
         urlparse(get_target_addrs()[0])
@@ -53,7 +57,7 @@ def parse_target() -> None:
         print(f'\nInvalid address \'{get_target_addrs()}\'!')
         raise
 
-    print('\n'.join(get_target_addrs()) if get_target_addrs()[0] != get_target_addrs()[1] else get_target_addrs()[0])
+    print('\n'.join(get_target_addrs()))
 
     with Session() as s:
         try:
@@ -95,7 +99,7 @@ def run_main() -> None:
     start_time = ltime()
 
     print('\nFetching proxy lists...')
-    all_prox_str = fetch_all()
+    all_prox_str = fetch_all(get_proxies_amount_factor())
 
     if len(all_prox_str) <= 1:
         print('\nNo proxies found, aborting...')

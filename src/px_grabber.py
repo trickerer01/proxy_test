@@ -30,13 +30,13 @@ MODULES = (
 )
 
 
-def fetch_all() -> str:
+def fetch_all(amount_factor: int) -> str:
     try:
         grab_threads = []
         for modul in MODULES:
             if not modul.ENABLED:
                 continue
-            grab_threads.append(Thread(target=modul.grab_proxies))
+            grab_threads.append(Thread(target=modul.grab_proxies, args=(amount_factor,)))
             grab_threads[-1].start()
 
         for thread in grab_threads:

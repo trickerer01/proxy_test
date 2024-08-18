@@ -15,6 +15,7 @@ from px_tester import __DEBUG
 def build_proxy_list(proxlist_str: str) -> Set[str]:
 
     checklist = set()
+    uchecklist = set()
     res_raw = proxlist_str.split('\n')
 
     idx = 0
@@ -38,7 +39,9 @@ def build_proxy_list(proxlist_str: str) -> Set[str]:
                 pref = str(pref_re.group(1))
 
         if not drop:
-            checklist.add(f'{pref} {addr}:{port}')
+            if f'{addr}:{port}' not in uchecklist:
+                uchecklist.add(f'{addr}:{port}')
+                checklist.add(f'{pref} {addr}:{port}')
         elif __DEBUG:
             print(f'dropped {res_raw[idx]}...')
 
