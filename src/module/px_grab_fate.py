@@ -21,7 +21,7 @@ proxylist_addr = 'https://raw.githubusercontent.com/fate0/proxylist/master/proxy
 def format_proxy(proxline: str) -> str:
     prox_addr_r = re_search(r'\"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\"\]', proxline)
     prox_port_r = re_search(r'\"port\": (\d+)', proxline)
-    prox_string = '[UNK] {"export_address": ["' + 'http://' + prox_addr_r.group(1) + '"], "port": ' + prox_port_r.group(1) + '}\n' \
+    prox_string = '[??] {"export_address": ["' + 'http://' + prox_addr_r.group(1) + '"], "port": ' + prox_port_r.group(1) + '}\n' \
         if prox_addr_r and prox_port_r else ''
     return prox_string
 

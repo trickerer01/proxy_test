@@ -28,10 +28,10 @@ __all__ = (
 __DEBUG = False
 
 CHECKLIST_RESPONSE_THRESHOLD = 4.0
-PROXY_CHECK_POOL = 40
+PROXY_CHECK_POOL = 50
 PROXY_CHECK_TRIES = 5
 PROXY_CHECK_UNSUCCESS_THRESHOLD = 3
-PROXY_CHECK_RECHECK_TIME = 3.0
+PROXY_CHECK_RECHECK_TIME = 5.0
 PROXY_CHECK_TIMEOUT = max(int(CHECKLIST_RESPONSE_THRESHOLD) + 2, 10)
 
 PTYPE_SOCKS = 'socks5'
@@ -40,7 +40,7 @@ PTYPE_HTTP = 'http'
 HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-US,en;q=0.5',
-    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Encoding': 'gzip, deflate',
     'DNT': '1',
     'Connection': 'keep-alive',
 }
@@ -109,13 +109,12 @@ def set_target_addr(addr: str) -> None:
     gs = fullmatch(fr'^.+{RANGE_MARKER_RE}.*?$', target_addr)
     if gs:
         n1, n2 = int(gs.group(1)), int(gs.group(2))
-        assert n1 + PROXY_CHECK_TRIES - 1 == n2
-        for i in range(PROXY_CHECK_TRIES):
+        q_count = (n2 + 1) - n1
+        assert PROXY_CHECK_TRIES <= q_count <= 100
+        for i in range(q_count):
             target_addrs.append(target_addr.replace(RANGE_MARKER % (n1, n2), f'{n1 + i:d}'))
     else:
-        for _ in range(PROXY_CHECK_TRIES):
-            target_addrs.append(target_addr)
-    assert len(target_addrs) == PROXY_CHECK_TRIES
+        target_addrs.append(target_addr)
 
 
 def get_target_addrs() -> List[str]:
@@ -135,6 +134,7 @@ def check_proxy(px: str) -> None:
 
         my_addrs = target_addrs.copy()
         shuffle(my_addrs)
+        del my_addrs[PROXY_CHECK_TRIES:]
         cur_prox: Optional[_ProxyStruct] = None
         cur_time = ltime()
         for n in range(PROXY_CHECK_TRIES):

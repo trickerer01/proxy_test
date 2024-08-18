@@ -32,7 +32,7 @@ myres_lock = ThreadLock()
 def format_prox(proxline: str) -> str:
     prox_addr = proxline[:proxline.rfind(':')]
     prox_port = proxline[proxline.rfind(':') + 1:]
-    prox_string = '[UNK] {"export_address": ["' + prox_addr + '"], "port": ' + prox_port + '}'
+    prox_string = '[??] {"export_address": ["' + prox_addr + '"], "port": ' + prox_port + '}'
     return prox_string + '\n'
 
 
