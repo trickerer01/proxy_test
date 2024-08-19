@@ -1,6 +1,6 @@
 # coding=UTF-8
 """
-Author: trickerer (https://github.com/trickerer)
+Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 """
 #########################################
 #

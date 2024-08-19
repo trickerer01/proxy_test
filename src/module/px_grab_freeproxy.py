@@ -1,6 +1,6 @@
 # coding=UTF-8
 """
-Author: trickerer (https://github.com/trickerer)
+Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 """
 #########################################
 #
@@ -9,7 +9,6 @@ Author: trickerer (https://github.com/trickerer)
 from re import compile as re_compile, search as re_search, findall as re_findall
 
 from bs4 import BeautifulSoup
-from iteration_utilities import unique_everseen
 from requests import Session
 
 from px_ua import random_useragent
@@ -52,14 +51,13 @@ def grab_proxies(*_) -> None:
                 preq.close()
 
                 # <a href="/en/proxylist/country/all/all/ping/level1/5">
-                pages = res_raw.find_all('a', href=re_compile(r'^/en/proxylist/country/all/http/uptime/level\d/\d$'))
-                pages_u = list(unique_everseen(list(pages)))
+                pages = list(res_raw.find_all('a', href=re_compile(r'^/en/proxylist/country/all/http/uptime/level\d/\d$')))
                 i = 0
-                while i < len(pages_u):
+                while i < len(pages):
                     # todo: extract page num, this code is not gonna work
-                    pages_u[i] = int(pages_u[i])
+                    pages[i] = int(pages[i])
                     i += 1
-                num_pages = min(5, max(pages_u))  # pages 6+ require captcha
+                num_pages = min(5, max(pages))  # pages 6+ require captcha
 
                 for i in range(num_pages):
                     try:
