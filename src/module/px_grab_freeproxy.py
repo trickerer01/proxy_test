@@ -54,7 +54,6 @@ def grab_proxies(*_) -> None:
                 pages = list(res_raw.find_all('a', href=re_compile(r'^/en/proxylist/country/all/http/uptime/level\d/\d$')))
                 i = 0
                 while i < len(pages):
-                    # todo: extract page num, this code is not gonna work
                     pages[i] = int(pages[i])
                     i += 1
                 num_pages = min(5, max(pages))  # pages 6+ require captcha

@@ -32,7 +32,7 @@ MODULES = (
 
 def fetch_all(amount_factor: int) -> str:
     try:
-        grab_threads = []
+        grab_threads = list()
         for modul in MODULES:
             if not modul.ENABLED:
                 continue

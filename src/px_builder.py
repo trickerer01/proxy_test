@@ -9,7 +9,7 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 from re import search as re_search
 from typing import Set
 
-from px_tester import __DEBUG
+from px_defs import __DEBUG
 
 
 def build_proxy_list(proxlist_str: str) -> Set[str]:
