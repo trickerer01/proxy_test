@@ -19,7 +19,7 @@ from requests.exceptions import RequestException
 
 from px_defs import (
     Config, ProxyStruct, __DEBUG, DEFAULT_HEADERS, STATUS_OK, EXTRA_ACCEPTED_CODES, PROXY_CHECK_TRIES, PROXY_CHECK_UNSUCCESS_THRESHOLD,
-    PROXY_CHECK_RE_TIME, PROXY_CHECK_TIMEOUT,
+    PROXY_CHECK_RE_TIME, PROXY_CHECK_TIMEOUT, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS,
 )
 from px_ua import random_useragent
 from px_utils import print_s
@@ -31,19 +31,21 @@ results: Dict[str, ProxyStruct] = dict()
 
 
 def check_proxy(px: str) -> None:
-    prefix, px = tuple(px.split(' ', 1)) if ' ' in px else ('[??]', px)
+    px = px if ' ' in px else f'[??] {px}'
+    prefix, px = tuple(px.split(' ', 1))
     with Session() as cs:
         cs.keep_alive = True
         cs.adapters.clear()
-        cs.mount('http://', HTTPAdapter(pool_maxsize=1, max_retries=0))
-        cs.mount('https://', HTTPAdapter(pool_maxsize=1, max_retries=0))
+        cs.mount(ADDR_TYPE_HTTP, HTTPAdapter(pool_maxsize=1, max_retries=0))
+        cs.mount(ADDR_TYPE_HTTPS, HTTPAdapter(pool_maxsize=1, max_retries=0))
         cs.headers.update(DEFAULT_HEADERS.copy())
         cs.headers.update({'User-Agent': random_useragent()})
         cs.proxies.update({'all': px})
 
         my_addrs = list(Config.targets)
         while len(my_addrs) < PROXY_CHECK_TRIES:
-            my_addrs.append(my_addrs[len(my_addrs) - len(Config.targets)])
+            newval = my_addrs[len(my_addrs) - len(Config.targets)]
+            my_addrs.append(newval)
         shuffle(my_addrs)
         del my_addrs[PROXY_CHECK_TRIES:]
         cur_prox: Optional[ProxyStruct] = None
@@ -54,7 +56,6 @@ def check_proxy(px: str) -> None:
             timer = ltime()
             try:
                 with cs.request('GET', my_addrs[n], timeout=PROXY_CHECK_TIMEOUT) as r:
-                    res_delay = ltime() - timer
                     if r.ok is False or r.status_code != STATUS_OK:
                         raise RequestException(response=r)
                     r.raise_for_status()
@@ -63,7 +64,6 @@ def check_proxy(px: str) -> None:
             except (KeyboardInterrupt, SystemExit):
                 raise
             except RequestException as err:
-                res_delay = ltime() - timer
                 res_acc = -1
                 suc = False
                 if err.response and err.response.status_code in EXTRA_ACCEPTED_CODES:
@@ -72,11 +72,12 @@ def check_proxy(px: str) -> None:
                 elif __DEBUG:
                     print_s(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
             except Exception:
-                res_delay = ltime() - timer
                 res_acc = -2
                 suc = False
                 if __DEBUG:
                     print_s(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
+            finally:
+                res_delay = ltime() - timer
 
             if cur_prox is not None:
                 cur_prox.delay.append(res_delay)

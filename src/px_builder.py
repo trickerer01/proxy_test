@@ -13,7 +13,6 @@ from px_defs import __DEBUG
 
 
 def build_proxy_list(proxlist_str: str) -> Set[str]:
-
     checklist = set()
     uchecklist = set()
     res_raw = proxlist_str.split('\n')

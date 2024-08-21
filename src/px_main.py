@@ -14,10 +14,9 @@ from time import sleep as thread_sleep
 from typing import Sequence
 
 from px_builder import build_proxy_list
-from px_cmdargs import prepare_arglist, HelpPrintExitException
+from px_cmdargs import HelpPrintExitException, prepare_arglist
 from px_defs import (
-    Config, UTF8, PROXY_CHECK_POOL_DEFAULT, PROXY_CHECK_TRIES, PROXY_CHECK_UNSUCCESS_THRESHOLD, PROXY_CHECK_RE_TIME, PROXY_CHECK_TIMEOUT,
-    OUTPUT_FILE_NAME,
+    Config, UTF8, PROXY_CHECK_TRIES, PROXY_CHECK_UNSUCCESS_THRESHOLD, PROXY_CHECK_RE_TIME, PROXY_CHECK_TIMEOUT, OUTPUT_FILE_NAME,
 )
 from px_grabber import fetch_all, MODULES
 from px_tester import check_proxies, result_lock, results
@@ -68,7 +67,7 @@ def run_main(args: Sequence[str]) -> None:
         print(f'{len(Config.proxies)} proxies parsed')
 
     proxy_check_time = int((PROXY_CHECK_TIMEOUT + PROXY_CHECK_RE_TIME) * (len(Config.proxies) // Config.poolsize + 1) * PROXY_CHECK_TRIES)
-    print(f'\nChecking {len(Config.proxies):d} proxies, {PROXY_CHECK_TRIES:d} queries each, {PROXY_CHECK_POOL_DEFAULT:d} threads. '
+    print(f'\nChecking {len(Config.proxies):d} proxies, {PROXY_CHECK_TRIES:d} queries each, {Config.poolsize:d} threads. '
           f'This may take {proxy_check_time:d}+ seconds')
 
     print('\nTimed List:')

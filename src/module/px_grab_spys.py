@@ -36,6 +36,7 @@ def format_proxy(proxline: str, ptype: str, prefix) -> str:
 def grab_proxies(amount_factor: int) -> None:
     global my_result
 
+    chr_arr = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX'  # const
     prox_types = {'1': 'http', '2': 'socks5'}
     prox_prefs = ['US', 'SG', 'MX', 'DE', 'GB', 'BR', 'FR', 'HK', 'CO', 'TH', 'FI', 'JP', 'TR', 'ZA', 'EC', 'ID', 'KR', 'CN', 'PH',
                   'EG', 'IN', 'VN', 'BD', 'CL', 'IR', 'ES', 'VE', 'NL', 'DO', 'AR', 'PE', 'CA', 'PL', 'PK', 'KH', 'TW', 'AU', 'KE',
@@ -55,9 +56,8 @@ def grab_proxies(amount_factor: int) -> None:
                     preq.close()
                     p, x = tuple(re_search(r'}\((\'[^.]+)', content_str).group(1).split(',60,60,'))
                     p_exec, symbols = p[1:-2], x[1:-1].split('^')
-                    chr_arr = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX'  # const
                     chars_to_symbols: Dict[str, str] = {chr_arr[i]: symbols[i] or chr_arr[i] for i in range(len(chr_arr))}
-                    p_exec = re_sub(r'\b(\w+)\b', lambda w: chars_to_symbols.get(w.group(1)) or '0', p_exec)
+                    p_exec = re_sub(r'\b(\w+)\b', lambda w: chars_to_symbols.get(w.group(1), '0'), p_exec)
                     vals = dict()
                     for s in p_exec.split(';'):
                         k, v = tuple(s.split('=', 1))
@@ -66,8 +66,8 @@ def grab_proxies(amount_factor: int) -> None:
                             if vs.isnumeric():
                                 val ^= int(vs)
                             else:
-                                assert vs in vals.keys()
-                                val ^= int(vals.get(vs))
+                                assert vs in vals
+                                val ^= int(vals[vs])
                         v = str(val)
                         vals[k] = vals.get(v) or v
                     rows_raw = (re_sub(r'\)</script></font></td>.+', '',

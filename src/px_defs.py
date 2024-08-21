@@ -22,6 +22,10 @@ PTYPE_SOCKS5 = 'socks5'
 PTYPE_HTTP = 'http'
 PTYPE_HTTPS = 'https'
 
+ADDR_TYPE_HTTP = f'{PTYPE_HTTP}://'
+ADDR_TYPE_HTTPS = f'{PTYPE_HTTPS}://'
+ADDR_TYPE_SOCKS5 = f'{PTYPE_SOCKS5}://'
+
 BL = '\\'
 SLASH = '/'
 MARKER = '#'
