@@ -18,8 +18,7 @@ from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 
 from px_defs import (
-    Config, ProxyStruct, __DEBUG, DEFAULT_HEADERS, STATUS_OK, EXTRA_ACCEPTED_CODES, PROXY_CHECK_TRIES, PROXY_CHECK_UNSUCCESS_THRESHOLD,
-    PROXY_CHECK_RE_TIME, PROXY_CHECK_TIMEOUT, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS,
+    Config, ProxyStruct, __DEBUG, DEFAULT_HEADERS, STATUS_OK, EXTRA_ACCEPTED_CODES, PROXY_CHECK_RE_TIME, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS,
 )
 from px_ua import random_useragent
 from px_utils import print_s
@@ -43,19 +42,16 @@ def check_proxy(px: str) -> None:
         cs.proxies.update({'all': px})
 
         my_addrs = list(Config.targets)
-        while len(my_addrs) < PROXY_CHECK_TRIES:
-            newval = my_addrs[len(my_addrs) - len(Config.targets)]
-            my_addrs.append(newval)
         shuffle(my_addrs)
-        del my_addrs[PROXY_CHECK_TRIES:]
+        del my_addrs[Config.tries_count:]
         cur_prox: Optional[ProxyStruct] = None
         cur_time = ltime()
-        for n in range(PROXY_CHECK_TRIES):
+        for n in range(Config.tries_count):
             if n > 0:
                 thread_sleep(PROXY_CHECK_RE_TIME)
             timer = ltime()
             try:
-                with cs.request('GET', my_addrs[n], timeout=PROXY_CHECK_TIMEOUT) as r:
+                with cs.request('GET', my_addrs[n % len(my_addrs)], timeout=float(Config.timeout)) as r:
                     if r.ok is False or r.status_code != STATUS_OK:
                         raise RequestException(response=r)
                     r.raise_for_status()
@@ -83,7 +79,7 @@ def check_proxy(px: str) -> None:
                 cur_prox.delay.append(res_delay)
                 cur_prox.accessibility.append(res_acc)
                 cur_prox.suc_count += 1 if suc is True else 0
-                if suc is False and n + 1 - cur_prox.suc_count >= PROXY_CHECK_UNSUCCESS_THRESHOLD:
+                if suc is False and n + 1 - cur_prox.suc_count >= Config.unsuccess_threshold:
                     cur_prox.finalize()
                     break
             else:

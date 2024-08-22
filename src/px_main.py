@@ -15,9 +15,7 @@ from typing import Sequence
 
 from px_builder import build_proxy_list
 from px_cmdargs import HelpPrintExitException, prepare_arglist
-from px_defs import (
-    Config, UTF8, PROXY_CHECK_TRIES, PROXY_CHECK_UNSUCCESS_THRESHOLD, PROXY_CHECK_RE_TIME, PROXY_CHECK_TIMEOUT, OUTPUT_FILE_NAME,
-)
+from px_defs import Config, UTF8, PROXY_CHECK_RE_TIME, OUTPUT_FILE_NAME
 from px_grabber import fetch_all, MODULES
 from px_tester import check_proxies, result_lock, results
 from px_utils import module_name_short, print_s
@@ -36,7 +34,7 @@ def cycle_results() -> None:
             for res in results.values():
                 if res.finalized and not res.done:
                     res.done = True
-                    if sum(res.accessibility) == 0 or res.suc_count < PROXY_CHECK_UNSUCCESS_THRESHOLD:
+                    if sum(res.accessibility) == 0 or res.suc_count < Config.unsuccess_threshold:
                         continue
                     print_s(str(res))
 
@@ -55,19 +53,20 @@ def run_main(args: Sequence[str]) -> None:
 
     print(f'STARTED AT {start_date}')
     print(f'\n{len(Config.targets)} targets parsed')
-    if isinstance(Config.proxies, int):
+    if Config.iproxies > 0:
         print(f'\nFetching proxy lists. Enabled modules: {" ".join(module_name_short(modul) for modul in MODULES)}')
-        all_prox_str = fetch_all(int(Config.proxies))
+        all_prox_str = fetch_all(Config.iproxies)
         if not all_prox_str:
             print('\nNo proxies found, aborting...')
             return
         print('\nBuilding checklist...')
-        Config.proxies = build_proxy_list(all_prox_str)
+        Config.proxies.update(build_proxy_list(all_prox_str))
     else:
         print(f'{len(Config.proxies)} proxies parsed')
 
-    proxy_check_time = int((PROXY_CHECK_TIMEOUT + PROXY_CHECK_RE_TIME) * (len(Config.proxies) // Config.poolsize + 1) * PROXY_CHECK_TRIES)
-    print(f'\nChecking {len(Config.proxies):d} proxies, {PROXY_CHECK_TRIES:d} queries each, {Config.poolsize:d} threads. '
+    proxy_check_time = int((Config.timeout + PROXY_CHECK_RE_TIME) * (len(Config.proxies) // Config.poolsize + 1) * Config.tries_count)
+    print(f'\nChecking {len(Config.proxies):d} proxies, {Config.tries_count:d} queries each, '
+          f'timeout is {Config.timeout}s, {Config.poolsize:d} threads. '
           f'This may take {proxy_check_time:d}+ seconds')
 
     print('\nTimed List:')
@@ -89,7 +88,7 @@ def run_main(args: Sequence[str]) -> None:
     i: int
     for i in reversed(range(len(proxy_finals))):
         res = proxy_finals[i]
-        if sum(res.accessibility) == 0 or res.suc_count <= (PROXY_CHECK_TRIES - PROXY_CHECK_UNSUCCESS_THRESHOLD):
+        if sum(res.accessibility) == 0 or res.suc_count <= (Config.tries_count - Config.unsuccess_threshold):
             del proxy_finals[i]
             continue
         if not res.finalized:

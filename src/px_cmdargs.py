@@ -13,8 +13,9 @@ from typing import Sequence, Tuple, Union, Set
 
 from px_defs import (
     UTF8, HELP_ARG_VERSION, HELP_ARG_TARGET, HELP_ARG_PROXIES, RANGE_MARKER_RE, RANGE_MARKER, RANGE_MAX, HELP_ARG_POOLSIZE,
-    PROXY_CHECK_POOL_MAX, PROXY_CHECK_POOL_DEFAULT, PROXY_AMOUNT_MAX, PROXY_AMOUNT_DEFAULT, HELP_ARG_DEST, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS,
-    ADDR_TYPE_SOCKS5,
+    PROXY_CHECK_POOL_MAX, PROXY_AMOUNT_MAX, PROXY_AMOUNT_DEFAULT, HELP_ARG_DEST, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS, ADDR_TYPE_SOCKS5,
+    PROXY_CHECK_TRIES_DEFAULT, PROXY_CHECK_UNSUCCESS_THRESHOLD_DEFAULT, HELP_ARG_TRIESCOUNT, HELP_ARG_UNSUCCESSTHRESHOLD,
+    PROXY_CHECK_TRIES_MAX, PROXY_CHECK_TIMEOUT_MIN, PROXY_CHECK_TIMEOUT_DEFAULT, HELP_ARG_TIMEOUT,
 )
 from px_utils import unquote, normalize_path
 from px_version import APP_NAME, APP_VERSION
@@ -118,8 +119,30 @@ def path_to_dir(pathstr: str) -> str:
     return newpath
 
 
+def valid_int(val: str, *, lb: int = None, ub: int = None) -> int:
+    val = int(val)
+    assert lb is None or val >= lb
+    assert ub is None or val <= ub
+    return val
+
+
+def timeout_seconds(val: str) -> int:
+    return valid_int(val, lb=PROXY_CHECK_TIMEOUT_MIN)
+
+
+def tries_count(val: str) -> int:
+    return valid_int(val, lb=1, ub=PROXY_CHECK_TRIES_MAX)
+
+
+def unsuccess_threshold(val: str) -> int:
+    return valid_int(val, lb=1, ub=PROXY_CHECK_TRIES_MAX)
+
+
 def validate_parsed(parser: ArgumentParser, default_sub: ArgumentParser, args: Sequence[str]) -> Namespace:
     parsed, _ = (parser if args[0] in EXISTING_PARSERS else default_sub).parse_known_args(args)
+    assert parsed.unsuccess_threshold <= parsed.tries_count, (
+        f'Fail threshold ({parsed.unsuccess_threshold:d}) is higher than tries count ({parsed.tries_count:d})!'
+    )
     return parsed
 
 
@@ -151,10 +174,16 @@ def prepare_arglist(args: Sequence[str]) -> Namespace:
                          help=HELP_ARG_TARGET, type=target_addr)
     par_cmd.add_argument('--proxy', '-p', metavar=f'URL_OR_FILE_OR_AMOUNT=1..{PROXY_AMOUNT_MAX:d}', default=PROXY_AMOUNT_DEFAULT,
                          help=HELP_ARG_PROXIES, type=target_prox)
-    par_cmd.add_argument('--pool-size', '-s', metavar=f'1..{PROXY_CHECK_POOL_MAX:d}', default=PROXY_CHECK_POOL_DEFAULT,
+    par_cmd.add_argument('--pool-size', '-s', metavar=f'1..{PROXY_CHECK_POOL_MAX:d}', default=0,
                          help=HELP_ARG_POOLSIZE, type=proxy_pool_size)
     par_cmd.add_argument('--dest', '-d', metavar='DIRECTORY', default=path_to_dir(path.curdir),
                          help=HELP_ARG_DEST, type=path_to_dir)
+    par_cmd.add_argument('--timeout', '-e', metavar='SECONDS', default=PROXY_CHECK_TIMEOUT_DEFAULT,
+                         help=HELP_ARG_TIMEOUT, type=timeout_seconds)
+    par_cmd.add_argument('--tries-count', '-c', metavar='COUNT', default=PROXY_CHECK_TRIES_DEFAULT,
+                         help=HELP_ARG_TRIESCOUNT, type=tries_count)
+    par_cmd.add_argument('--unsuccess-threshold', '-u', metavar='COUNT', default=PROXY_CHECK_UNSUCCESS_THRESHOLD_DEFAULT,
+                         help=HELP_ARG_UNSUCCESSTHRESHOLD, type=unsuccess_threshold)
     return execute_parser(parser, par_cmd, args)
 
 #

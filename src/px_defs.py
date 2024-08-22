@@ -8,7 +8,7 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 
 from argparse import Namespace
 from time import time as ltime
-from typing import Union, Set
+from typing import Set
 
 __DEBUG = False
 
@@ -42,13 +42,14 @@ EXTRA_ACCEPTED_CODES = {STATUS_FORBIDDEN, STATUS_NOTFOUND, STATUS_SERVICE_UNAVAI
 
 PROXY_AMOUNT_DEFAULT = 1
 PROXY_AMOUNT_MAX = 9
-PROXY_CHECK_POOL_DEFAULT = 20
+PROXY_CHECK_POOL_DEFAULT = 1
 PROXY_CHECK_POOL_MAX = 100
-PROXY_CHECK_TRIES = 5
-PROXY_CHECK_UNSUCCESS_THRESHOLD = 3
-PROXY_CHECK_RE_TIME = 5.0
-CHECKLIST_RESPONSE_THRESHOLD = 4.0
-PROXY_CHECK_TIMEOUT = max(int(CHECKLIST_RESPONSE_THRESHOLD) + 2, 10)
+PROXY_CHECK_TRIES_DEFAULT = 5
+PROXY_CHECK_TRIES_MAX = 20
+PROXY_CHECK_UNSUCCESS_THRESHOLD_DEFAULT = PROXY_CHECK_TRIES_DEFAULT
+PROXY_CHECK_TIMEOUT_MIN = 5
+PROXY_CHECK_TIMEOUT_DEFAULT = 10
+PROXY_CHECK_RE_TIME = 1.0
 
 DEFAULT_HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -73,26 +74,39 @@ HELP_ARG_PROXIES = (
     f' Warning: may fetch many thousands of proxies, testing which may take hours!'
 )
 HELP_ARG_POOLSIZE = (
-    f'Number of proxies to test simulteneously. Increasing this number reduces total test time but may trigger anti-DDoS protection.'
-    f' Default is {PROXY_CHECK_POOL_DEFAULT:d}'
+    f'Number of proxies to test simultaneously. Increasing this number reduces total test time but may trigger anti-DDoS protection.'
+    f' This number can\'t be greater than targets pool size or hard limit of {PROXY_CHECK_POOL_MAX:d}'
 )
 HELP_ARG_DEST = 'Path to directory to store results to. Default is current workdir'
+HELP_ARG_TIMEOUT = (
+    f'Proxy connection timeout (total) in seconds, {PROXY_CHECK_TIMEOUT_MIN:d}-inf. Defaults is {PROXY_CHECK_TIMEOUT_DEFAULT:d}'
+)
+HELP_ARG_TRIESCOUNT = f'Proxy connection tries count, 1-{PROXY_CHECK_TRIES_MAX:d}. Default is {PROXY_CHECK_TRIES_DEFAULT:d}'
+HELP_ARG_UNSUCCESSTHRESHOLD = (
+    f'Proxy unsuccessful connection tries count to consider proxy check failed. Defaults is {PROXY_CHECK_UNSUCCESS_THRESHOLD_DEFAULT:d}'
+)
 
 
 class BaseConfig:
     def __init__(self) -> None:
         self.targets: Set[str] = set()
-        self.proxies: Union[int, Set[str]] = -1
-        self._proxies = -1
-        self.poolsize = PROXY_CHECK_POOL_DEFAULT
-        self.dest = './'
+        self.proxies: Set[str] = set()
+        self.iproxies = 0
+        self.poolsize = 0
+        self.dest = ''
+        self.timeout = 0
+        self.tries_count = 0
+        self.unsuccess_threshold = 0
 
     def read(self, params: Namespace) -> None:
-        self.targets = params.target
-        self.proxies = params.proxy
-        self._proxies = self.proxies if isinstance(self.proxies, int) else -1
-        self.poolsize = params.pool_size
-        self.dest = params.dest
+        self.targets.update(params.target)
+        self.proxies.update(params.proxy if isinstance(params.proxy, set) else self.proxies)
+        self.iproxies = params.proxy if isinstance(params.proxy, int) else self.iproxies
+        self.poolsize = min(params.pool_size or self.poolsize, len(self.targets), PROXY_CHECK_POOL_MAX)
+        self.dest = str(params.dest)
+        self.timeout = int(params.timeout)
+        self.tries_count = int(params.tries_count)
+        self.unsuccess_threshold = int(params.unsuccess_threshold)
 
 
 Config = BaseConfig()
@@ -116,10 +130,10 @@ class ProxyStruct():
             return
 
         # average delay should only be counted from valid delays
-        while len(self.accessibility) < PROXY_CHECK_TRIES:
+        while len(self.accessibility) < PROXY_CHECK_TRIES_DEFAULT:
             self.accessibility.append(0)
-        while len(self.delay) < PROXY_CHECK_TRIES:
-            self.delay.append(self.delay[-1] if len(self.delay) > 0 else CHECKLIST_RESPONSE_THRESHOLD)
+        while len(self.delay) < PROXY_CHECK_TRIES_DEFAULT:
+            self.delay.append(self.delay[-1] if len(self.delay) > 0 else float(PROXY_CHECK_TIMEOUT_DEFAULT))
 
         average_delay = 0.0
         valid_delays = 0
@@ -128,12 +142,12 @@ class ProxyStruct():
             valid_delays += int(val >= 0.0)
 
         self._average_delay = average_delay / max(valid_delays, 1)
-        self._total_time = (ltime() - self.start) - PROXY_CHECK_RE_TIME * (PROXY_CHECK_TRIES - 1)
+        self._total_time = (ltime() - self.start) - PROXY_CHECK_RE_TIME * (PROXY_CHECK_TRIES_DEFAULT - 1)
         self.finalized = True
 
     def __str__(self) -> str:
         return (f'{self.prefix} {self.addr} ({self._average_delay:.3f}s) - {self.suc_count:d}/'
-                f'{PROXY_CHECK_TRIES :d} in {self._total_time:.2f}s [{",".join([str(a) for a in self.accessibility])}]')
+                f'{PROXY_CHECK_TRIES_DEFAULT :d} in {self._total_time:.2f}s [{",".join([str(a) for a in self.accessibility])}]')
 
 #
 #
