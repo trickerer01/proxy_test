@@ -119,9 +119,9 @@ class ProxyStruct():
         self.delay = [delay]
         self.accessibility = [accessibility]
         self.suc_count = int(success)
-        self.start = start
         self.done = False
         self.finalized = False
+        self._start = start
         self._average_delay = 0.0
         self._total_time = 0.0
 
@@ -130,9 +130,9 @@ class ProxyStruct():
             return
 
         # average delay should only be counted from valid delays
-        while len(self.accessibility) < PROXY_CHECK_TRIES_DEFAULT:
+        while len(self.accessibility) < Config.tries_count:
             self.accessibility.append(0)
-        while len(self.delay) < PROXY_CHECK_TRIES_DEFAULT:
+        while len(self.delay) < Config.tries_count:
             self.delay.append(self.delay[-1] if len(self.delay) > 0 else float(PROXY_CHECK_TIMEOUT_DEFAULT))
 
         average_delay = 0.0
@@ -142,12 +142,12 @@ class ProxyStruct():
             valid_delays += int(val >= 0.0)
 
         self._average_delay = average_delay / max(valid_delays, 1)
-        self._total_time = (ltime() - self.start) - PROXY_CHECK_RE_TIME * (PROXY_CHECK_TRIES_DEFAULT - 1)
+        self._total_time = (ltime() - self._start) - PROXY_CHECK_RE_TIME * (Config.tries_count - 1)
         self.finalized = True
 
     def __str__(self) -> str:
-        return (f'{self.prefix} {self.addr} ({self._average_delay:.3f}s) - {self.suc_count:d}/'
-                f'{PROXY_CHECK_TRIES_DEFAULT :d} in {self._total_time:.2f}s [{",".join([str(a) for a in self.accessibility])}]')
+        return (f'{self.prefix} {self.addr} ({self._average_delay:.3f}s) - {self.suc_count:d}/{Config.tries_count :d} '
+                f'in {self._total_time:.2f}s [{",".join([str(a) for a in self.accessibility])}]')
 
 #
 #
