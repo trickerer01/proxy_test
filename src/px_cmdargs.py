@@ -143,6 +143,10 @@ def validate_parsed(parser: ArgumentParser, default_sub: ArgumentParser, args: S
     assert parsed.unsuccess_threshold <= parsed.tries_count, (
         f'Fail threshold ({parsed.unsuccess_threshold:d}) is higher than tries count ({parsed.tries_count:d})!'
     )
+    assert parsed.pool_size < 3 or len(parsed.target) >= 2 * parsed.pool_size, (
+        f'Testing {parsed.pool_size:d} proxies simultaneously requires at least {2 * parsed.pool_size:d} targets, '
+        f'got {len(parsed.target):d}!'
+    )
     return parsed
 
 
