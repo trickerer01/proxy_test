@@ -9,7 +9,7 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 from __future__ import annotations
 from argparse import Namespace
 from time import time as ltime
-from typing import Set
+from typing import Set, Union
 from urllib.parse import urlparse
 
 __DEBUG = False
@@ -123,6 +123,7 @@ Config = BaseConfig()
 
 class ProxyStruct:
     class Compare:
+        VALUE_TYPE = int
         LT = -1
         EQ = 0
         GT = 1
@@ -159,34 +160,35 @@ class ProxyStruct:
         self._total_time = (ltime() - self._start) - PROXY_CHECK_RE_TIME * (Config.tries_count - 1)
         self.finalized = True
 
-    def cmp_accessibility(self, other: ProxyStruct) -> int:
-        succ1, succ2 = self.suc_count, other.suc_count
-        return self.Compare.LT if succ1 < succ2 else self.Compare.GT if succ1 > succ2 else self.Compare.EQ
+    def _cmp_result(self, val1: Union[int, str], val2: Union[int, str]) -> ProxyStruct.Compare.VALUE_TYPE:
+        return self.Compare.LT if val1 < val2 else self.Compare.GT if val1 > val2 else self.Compare.EQ
 
-    def cmp_address(self, other: ProxyStruct) -> int:
+    def _cmp_accessibility(self, other: ProxyStruct) -> ProxyStruct.Compare.VALUE_TYPE:
+        return self._cmp_result(self.suc_count, other.suc_count)
+
+    def _cmp_address(self, other: ProxyStruct) -> ProxyStruct.Compare.VALUE_TYPE:
         if self.addr == other.addr:
             return self.Compare.EQ
         try:
             url1, url2 = urlparse(self.addr), urlparse(other.addr)
+            parts1, parts2 = tuple(u.hostname.split('.') for u in (url1, url2))
+            can_compare = len(parts1) == len(parts2) and all(all(p.isnumeric() for p in parts) for parts in (parts1, parts2))
+            assert can_compare
+            for idx in range(len(parts1)):
+                pi1, pi2 = int(parts1[idx]), int(parts2[idx])
+                if pi1 < pi2:
+                    return self.Compare.LT
+                if pi1 > pi2:
+                    return self.Compare.GT
+            p1, p2 = url1.port, url2.port
+            return self._cmp_result(p1, p2)
         except Exception:
-            return self.addr < other.addr
-        parts1, parts2 = tuple(u.hostname.split('.') for u in (url1, url2))
-        can_compare = len(parts1) == len(parts2) and all(all(p.isnumeric() for p in parts) for parts in (parts1, parts2))
-        if not can_compare:
-            return self.addr < other.addr
-        for idx in range(len(parts1)):
-            pi1, pi2 = int(parts1[idx]), int(parts2[idx])
-            if pi1 < pi2:
-                return self.Compare.LT
-            if pi1 > pi2:
-                return self.Compare.GT
-        p1, p2 = url1.port, url2.port
-        return self.Compare.LT if p1 < p2 else self.Compare.GT if p1 > p2 else self.Compare.EQ
+            return self._cmp_result(self.addr, other.addr)
 
     def __lt__(self, other: ProxyStruct) -> bool:
-        result = self.cmp_address(other) if Config.order == ORDER_ADDRESS else self.cmp_accessibility(other)
+        result = self._cmp_address(other) if Config.order == ORDER_ADDRESS else self._cmp_accessibility(other)
         if result == self.Compare.EQ:
-            result = self.cmp_accessibility(other) if Config.order == ORDER_ADDRESS else self.cmp_address(other)
+            result = self._cmp_accessibility(other) if Config.order == ORDER_ADDRESS else self._cmp_address(other)
         return result == self.Compare.LT
 
     def __str__(self) -> str:
