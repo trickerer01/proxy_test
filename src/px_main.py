@@ -29,7 +29,7 @@ def cycle_results() -> None:
     while True:
         if exiting:
             break
-        thread_sleep(0.25)
+        thread_sleep(0.5)
         with result_lock:
             for res in results.values():
                 if res.finalized and not res.done:
@@ -83,7 +83,7 @@ def run_main(args: Sequence[str]) -> None:
 
     print(f'\nFINISHED AT {end_date}')
     print('\nCompleted. Filtering out useless entries...')
-    proxy_finals = list(reversed(sorted(reversed(sorted(results.values(), key=lambda ures: ures.addr)), key=lambda ures: ures.suc_count)))
+    proxy_finals = sorted(results.values())
     oldlen = len(proxy_finals)
     i: int
     for i in reversed(range(len(proxy_finals))):

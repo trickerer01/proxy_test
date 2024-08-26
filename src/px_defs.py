@@ -6,9 +6,11 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
+from __future__ import annotations
 from argparse import Namespace
 from time import time as ltime
 from typing import Set
+from urllib.parse import urlparse
 
 __DEBUG = False
 
@@ -51,6 +53,10 @@ PROXY_CHECK_TIMEOUT_MIN = 5
 PROXY_CHECK_TIMEOUT_DEFAULT = 10
 PROXY_CHECK_RE_TIME = 1.0
 
+ORDER_ACCESSIBILITY = 'access'
+ORDER_ADDRESS = 'address'
+ORDER_DEFAULT = ORDER_ACCESSIBILITY
+
 DEFAULT_HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-US,en;q=0.5',
@@ -85,6 +91,7 @@ HELP_ARG_TRIESCOUNT = f'Proxy connection tries count, 1-{PROXY_CHECK_TRIES_MAX:d
 HELP_ARG_UNSUCCESSTHRESHOLD = (
     f'Proxy unsuccessful connection tries count to consider proxy check failed. Defaults is {PROXY_CHECK_UNSUCCESS_THRESHOLD_DEFAULT:d}'
 )
+HELP_ARG_ORDER = f'Results output sorting order. Defaults is \'{ORDER_DEFAULT}\''
 
 
 class BaseConfig:
@@ -97,6 +104,7 @@ class BaseConfig:
         self.timeout = 0
         self.tries_count = 0
         self.unsuccess_threshold = 0
+        self.order = ORDER_DEFAULT
 
     def read(self, params: Namespace) -> None:
         self.targets.update(params.target)
@@ -107,12 +115,18 @@ class BaseConfig:
         self.timeout = int(params.timeout)
         self.tries_count = int(params.tries_count)
         self.unsuccess_threshold = int(params.unsuccess_threshold)
+        self.order = params.order
 
 
 Config = BaseConfig()
 
 
-class ProxyStruct():
+class ProxyStruct:
+    class Compare:
+        LT = -1
+        EQ = 0
+        GT = 1
+
     def __init__(self, prefix: str, addr: str, delay: float, accessibility: int, success: bool, start: float) -> None:
         self.prefix = prefix
         self.addr = addr
@@ -144,6 +158,36 @@ class ProxyStruct():
         self._average_delay = average_delay / max(valid_delays, 1)
         self._total_time = (ltime() - self._start) - PROXY_CHECK_RE_TIME * (Config.tries_count - 1)
         self.finalized = True
+
+    def cmp_accessibility(self, other: ProxyStruct) -> int:
+        succ1, succ2 = self.suc_count, other.suc_count
+        return self.Compare.LT if succ1 < succ2 else self.Compare.GT if succ1 > succ2 else self.Compare.EQ
+
+    def cmp_address(self, other: ProxyStruct) -> int:
+        if self.addr == other.addr:
+            return self.Compare.EQ
+        try:
+            url1, url2 = urlparse(self.addr), urlparse(other.addr)
+        except Exception:
+            return self.addr < other.addr
+        parts1, parts2 = tuple(u.hostname.split('.') for u in (url1, url2))
+        can_compare = len(parts1) == len(parts2) and all(all(p.isnumeric() for p in parts) for parts in (parts1, parts2))
+        if not can_compare:
+            return self.addr < other.addr
+        for idx in range(len(parts1)):
+            pi1, pi2 = int(parts1[idx]), int(parts2[idx])
+            if pi1 < pi2:
+                return self.Compare.LT
+            if pi1 > pi2:
+                return self.Compare.GT
+        p1, p2 = url1.port, url2.port
+        return self.Compare.LT if p1 < p2 else self.Compare.GT if p1 > p2 else self.Compare.EQ
+
+    def __lt__(self, other: ProxyStruct) -> bool:
+        result = self.cmp_address(other) if Config.order == ORDER_ADDRESS else self.cmp_accessibility(other)
+        if result == self.Compare.EQ:
+            result = self.cmp_accessibility(other) if Config.order == ORDER_ADDRESS else self.cmp_address(other)
+        return result == self.Compare.LT
 
     def __str__(self) -> str:
         return (f'{self.prefix} {self.addr} ({self._average_delay:.3f}s) - {self.suc_count:d}/{Config.tries_count :d} '

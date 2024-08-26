@@ -17,8 +17,8 @@ Find and / or test multiple proxies for target website and more
   - `python px_main.py --target <ADDRESS> --proxy <ADDRESS:PORT>`
 - Test a range of proxies against random web addresses in range
   - `python px_main.py --target https://example.com/1#2001-3000#/ --proxy socks5://127.0.0.#1-255#:3128`
-- Test all proxies listed within a text file against random web addresses listed within a second text file, test up to 50 proxies simultaneously, save results to a specific folder
-  - `python px_main.py --target <FILEPATH> --proxy <FILEPATH> --pool-size 50 --dest <DIRPATH>`
+- Test all proxies listed within a text file against random web addresses listed within a second text file, test up to 50 proxies simultaneously, save results to a specific folder, sort by address
+  - `python px_main.py --target <FILEPATH> --proxy <FILEPATH> --pool-size 50 --dest <DIRPATH> --order address`
 - File format is uniform - every address or range is separed by a newline, range size is limited to `1000`, the only difference is proxy type can be either `http` or `socks5` and web address can be either `http` or `https`:
 - ```text
   http://example.com/
