@@ -103,7 +103,7 @@ def run_main(args: Sequence[str]) -> None:
             makedirs(Config.dest)
         with open(f'{Config.dest}{OUTPUT_FILE_NAME}', 'at', encoding=UTF8) as ofile:
             ofile.writelines(f'px_test results {start_date} - {end_date} ({next(iter(Config.targets), "")}...):\n'
-                             + '\n'.join(str(res) for res in proxy_finals))
+                             + '\n'.join(str(res) for res in proxy_finals) + '\n')
 
 
 def main_sync(args: Sequence[str]) -> None:
