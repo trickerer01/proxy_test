@@ -17,9 +17,7 @@ from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 
-from px_defs import (
-    Config, ProxyStruct, __DEBUG, DEFAULT_HEADERS, STATUS_OK, EXTRA_ACCEPTED_CODES, PROXY_CHECK_RE_TIME, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS,
-)
+from px_defs import Config, ProxyStruct, __DEBUG, DEFAULT_HEADERS, STATUS_OK, EXTRA_ACCEPTED_CODES, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS
 from px_ua import random_useragent
 from px_utils import print_s
 
@@ -48,7 +46,7 @@ def check_proxy(px: str) -> None:
         cur_time = ltime()
         for n in range(Config.tries_count):
             if n > 0:
-                thread_sleep(PROXY_CHECK_RE_TIME)
+                thread_sleep(float(Config.delay))
             timer = ltime()
             try:
                 with cs.request('GET', my_addrs[n % len(my_addrs)], timeout=float(Config.timeout)) as r:

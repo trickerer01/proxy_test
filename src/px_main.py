@@ -15,7 +15,7 @@ from typing import Sequence
 
 from px_builder import build_proxy_list
 from px_cmdargs import HelpPrintExitException, prepare_arglist
-from px_defs import Config, UTF8, PROXY_CHECK_RE_TIME, OUTPUT_FILE_NAME
+from px_defs import Config, UTF8, OUTPUT_FILE_NAME
 from px_grabber import fetch_all, MODULES
 from px_tester import check_proxies, result_lock, results
 from px_utils import module_name_short, print_s
@@ -64,9 +64,9 @@ def run_main(args: Sequence[str]) -> None:
     else:
         print(f'{len(Config.proxies)} proxies parsed')
 
-    proxy_check_time = int((Config.timeout + PROXY_CHECK_RE_TIME) * (len(Config.proxies) // Config.poolsize + 1) * Config.tries_count)
+    proxy_check_time = (Config.timeout + Config.delay) * (len(Config.proxies) // Config.poolsize + 1) * Config.tries_count
     print(f'\nChecking {len(Config.proxies):d} proxies, {Config.tries_count:d} queries each, '
-          f'timeout is {Config.timeout}s, {Config.poolsize:d} threads. '
+          f'timeout is {Config.timeout}s, delay is {Config.delay:d}s, {Config.poolsize:d} threads. '
           f'This may take {proxy_check_time:d}+ seconds')
 
     print('\nTimed List:')

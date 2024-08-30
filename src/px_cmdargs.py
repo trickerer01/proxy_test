@@ -16,7 +16,7 @@ from px_defs import (
     PROXY_CHECK_POOL_MAX, PROXY_AMOUNT_MAX, PROXY_AMOUNT_DEFAULT, HELP_ARG_DEST, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS, ADDR_TYPE_SOCKS5,
     PROXY_CHECK_TRIES_DEFAULT, PROXY_CHECK_UNSUCCESS_THRESHOLD_DEFAULT, HELP_ARG_TRIESCOUNT, HELP_ARG_UNSUCCESSTHRESHOLD,
     PROXY_CHECK_TRIES_MAX, PROXY_CHECK_TIMEOUT_MIN, PROXY_CHECK_TIMEOUT_DEFAULT, HELP_ARG_TIMEOUT, ORDER_ACCESSIBILITY, ORDER_ADDRESS,
-    ORDER_DEFAULT, HELP_ARG_ORDER,
+    ORDER_DEFAULT, HELP_ARG_ORDER, PROXY_CHECK_DELAY_DEFAULT, PROXY_CHECK_DELAY_MIN, HELP_ARG_DELAY,
 )
 from px_utils import unquote, normalize_path
 from px_version import APP_NAME, APP_VERSION
@@ -137,6 +137,10 @@ def tries_count(val: str) -> int:
     return valid_int(val, lb=1, ub=PROXY_CHECK_TRIES_MAX)
 
 
+def delay_seconds(val: str) -> int:
+    return valid_int(val, lb=PROXY_CHECK_DELAY_MIN)
+
+
 def unsuccess_threshold(val: str) -> int:
     return valid_int(val, lb=1, ub=PROXY_CHECK_TRIES_MAX)
 
@@ -189,6 +193,8 @@ def prepare_arglist(args: Sequence[str]) -> Namespace:
                          help=HELP_ARG_TIMEOUT, type=timeout_seconds)
     par_cmd.add_argument('--tries-count', '-c', metavar='COUNT', default=PROXY_CHECK_TRIES_DEFAULT,
                          help=HELP_ARG_TRIESCOUNT, type=tries_count)
+    par_cmd.add_argument('--delay', '-l', metavar='SECONDS', default=PROXY_CHECK_DELAY_DEFAULT,
+                         help=HELP_ARG_DELAY, type=delay_seconds)
     par_cmd.add_argument('--unsuccess-threshold', '-u', metavar='COUNT', default=PROXY_CHECK_UNSUCCESS_THRESHOLD_DEFAULT,
                          help=HELP_ARG_UNSUCCESSTHRESHOLD, type=unsuccess_threshold)
     par_cmd.add_argument('--order', '-o', default=ORDER_DEFAULT, help=HELP_ARG_ORDER, choices=ORDER_TYPES)

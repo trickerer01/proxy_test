@@ -51,7 +51,8 @@ PROXY_CHECK_TRIES_MAX = 20
 PROXY_CHECK_UNSUCCESS_THRESHOLD_DEFAULT = PROXY_CHECK_TRIES_DEFAULT
 PROXY_CHECK_TIMEOUT_MIN = 5
 PROXY_CHECK_TIMEOUT_DEFAULT = 10
-PROXY_CHECK_RE_TIME = 1.0
+PROXY_CHECK_DELAY_DEFAULT = 1
+PROXY_CHECK_DELAY_MIN = 1
 
 ORDER_ACCESSIBILITY = 'access'
 ORDER_ADDRESS = 'address'
@@ -88,6 +89,7 @@ HELP_ARG_TIMEOUT = (
     f'Proxy connection timeout (total) in seconds, {PROXY_CHECK_TIMEOUT_MIN:d}-inf. Defaults is {PROXY_CHECK_TIMEOUT_DEFAULT:d}'
 )
 HELP_ARG_TRIESCOUNT = f'Proxy connection tries count, 1-{PROXY_CHECK_TRIES_MAX:d}. Default is {PROXY_CHECK_TRIES_DEFAULT:d}'
+HELP_ARG_DELAY = f'Time delay between connection attempts (in seconds). Defaults is {PROXY_CHECK_DELAY_DEFAULT:d}'
 HELP_ARG_UNSUCCESSTHRESHOLD = (
     f'Proxy unsuccessful connection tries count to consider proxy check failed. Defaults is {PROXY_CHECK_UNSUCCESS_THRESHOLD_DEFAULT:d}'
 )
@@ -103,6 +105,7 @@ class BaseConfig:
         self.dest = ''
         self.timeout = 0
         self.tries_count = 0
+        self.delay = 0
         self.unsuccess_threshold = 0
         self.order = ORDER_DEFAULT
 
@@ -114,6 +117,7 @@ class BaseConfig:
         self.dest = str(params.dest)
         self.timeout = int(params.timeout)
         self.tries_count = int(params.tries_count)
+        self.delay = int(params.delay)
         self.unsuccess_threshold = int(params.unsuccess_threshold)
         self.order = params.order
 
@@ -157,7 +161,7 @@ class ProxyStruct:
             valid_delays += int(val >= 0.0)
 
         self._average_delay = average_delay / max(valid_delays, 1)
-        self._total_time = (ltime() - self._start) - PROXY_CHECK_RE_TIME * (Config.tries_count - 1)
+        self._total_time = (ltime() - self._start) - Config.delay * (Config.tries_count - 1)
         self.finalized = True
 
     def _cmp_result(self, val1: Union[int, str], val2: Union[int, str]) -> ProxyStruct.Compare.VALUE_TYPE:
