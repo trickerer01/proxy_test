@@ -15,7 +15,7 @@ from typing import Sequence
 
 from px_builder import build_proxy_list
 from px_cmdargs import HelpPrintExitException, prepare_arglist
-from px_defs import Config, UTF8, OUTPUT_FILE_NAME
+from px_defs import Config, UTF8
 from px_grabber import fetch_all, MODULES
 from px_tester import check_proxies, result_lock, results
 from px_utils import module_name_short, print_s
@@ -99,11 +99,26 @@ def run_main(args: Sequence[str]) -> None:
     print(' ' + '\n '.join(str(res) for res in proxy_finals))
 
     if len(proxy_finals) > 0:
-        if not path.isdir(Config.dest):
-            makedirs(Config.dest)
-        with open(f'{Config.dest}{OUTPUT_FILE_NAME}', 'at', encoding=UTF8) as ofile:
-            ofile.writelines(f'px_test results {start_date} - {end_date} ({next(iter(Config.targets), "")}...):\n'
-                             + '\n'.join(str(res) for res in proxy_finals) + '\n')
+        if not path.isdir(Config.dest[0]):
+            makedirs(Config.dest[0])
+        pindex = -1
+        while True:
+            pindex += 1
+            if pindex >= 10:
+                print('FATAL: unable to save results!')
+                break
+            filepath = '/'.join(Config.dest)
+            if pindex:
+                fp, ext = path.splitext(filepath)
+                filepath = f'{fp} ({pindex:d}){ext}'
+            try:
+                with open(filepath, 'at', encoding=UTF8) as ofile:
+                    ofile.writelines(f'px_test results {start_date} - {end_date} ({next(iter(Config.targets), "")}...):\n'
+                                     + '\n'.join(str(res) for res in proxy_finals) + '\n')
+                break
+            except Exception:
+                print(f'Unable to open \'{filepath}\' for write, trying another one...')
+                continue
 
 
 def main_sync(args: Sequence[str]) -> None:

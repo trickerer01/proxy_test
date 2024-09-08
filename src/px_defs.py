@@ -84,7 +84,7 @@ HELP_ARG_POOLSIZE = (
     f'Number of proxies to test simultaneously. Increasing this number reduces total test time but may trigger anti-DDoS protection.'
     f' This number can\'t be greater than targets pool size or hard limit of {PROXY_CHECK_POOL_MAX:d}'
 )
-HELP_ARG_DEST = 'Path to directory to store results to. Default is current workdir'
+HELP_ARG_DEST = 'Path to directory or full path to file to store results to. Default is current workdir'
 HELP_ARG_TIMEOUT = (
     f'Proxy connection timeout (total) in seconds, {PROXY_CHECK_TIMEOUT_MIN:d}-inf. Defaults is {PROXY_CHECK_TIMEOUT_DEFAULT:d}'
 )
@@ -102,7 +102,7 @@ class BaseConfig:
         self.proxies: Set[str] = set()
         self.iproxies = 0
         self.poolsize = 0
-        self.dest = ''
+        self.dest = ('', '')
         self.timeout = 0
         self.tries_count = 0
         self.delay = 0
@@ -114,7 +114,7 @@ class BaseConfig:
         self.proxies.update(params.proxy if isinstance(params.proxy, set) else self.proxies)
         self.iproxies = params.proxy if isinstance(params.proxy, int) else self.iproxies
         self.poolsize = min(params.pool_size or self.poolsize, len(self.targets), PROXY_CHECK_POOL_MAX)
-        self.dest = str(params.dest)
+        self.dest = (str(params.dest[0]), str(params.dest[1]) or OUTPUT_FILE_NAME)
         self.timeout = int(params.timeout)
         self.tries_count = int(params.tries_count)
         self.delay = int(params.delay)

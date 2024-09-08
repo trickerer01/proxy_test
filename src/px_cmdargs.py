@@ -116,10 +116,12 @@ def proxy_pool_size(size_str: str) -> int:
     return size
 
 
-def path_to_dir(pathstr: str) -> str:
-    newpath = normalize_path(path.abspath(path.expanduser(unquote(pathstr))))
-    assert path.isdir(newpath), f'Error: Invalid directory path \'{pathstr}\' (folder doesn\'t exist)'
-    return newpath
+def dest_path(pathstr: str) -> Tuple[str, str]:
+    path_abs = path.abspath(path.expanduser(unquote(pathstr)))
+    newpath = normalize_path(path_abs, append_slash=path.splitext(path_abs)[1] == '')
+    dirpath, filename = path.split(newpath)
+    assert path.isdir(dirpath), f'Error: Invalid path \'{pathstr}\' (folder doesn\'t exist)'
+    return dirpath, filename
 
 
 def valid_int(val: str, *, lb: int = None, ub: int = None) -> int:
@@ -188,8 +190,8 @@ def prepare_arglist(args: Sequence[str]) -> Namespace:
                          help=HELP_ARG_PROXIES, type=target_prox)
     par_cmd.add_argument('--pool-size', '-s', metavar=f'1..{PROXY_CHECK_POOL_MAX:d}', default=0,
                          help=HELP_ARG_POOLSIZE, type=proxy_pool_size)
-    par_cmd.add_argument('--dest', '-d', metavar='DIRECTORY', default=path_to_dir(path.curdir),
-                         help=HELP_ARG_DEST, type=path_to_dir)
+    par_cmd.add_argument('--dest', '-d', metavar='PATH', default=dest_path(path.curdir),
+                         help=HELP_ARG_DEST, type=dest_path)
     par_cmd.add_argument('--timeout', '-e', metavar='SECONDS', default=PROXY_CHECK_TIMEOUT_DEFAULT,
                          help=HELP_ARG_TIMEOUT, type=timeout_seconds)
     par_cmd.add_argument('--tries-count', '-c', metavar='COUNT', default=PROXY_CHECK_TRIES_DEFAULT,
