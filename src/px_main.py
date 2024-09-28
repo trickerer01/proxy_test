@@ -122,7 +122,7 @@ def run_main(args: Sequence[str]) -> None:
 
 
 def main_sync(args: Sequence[str]) -> None:
-    assert sys.version_info >= (3, 7), 'Minimum python version required is 3.7!'
+    assert sys.version_info >= (3, 9), 'Minimum python version required is 3.9!'
 
     try:
         run_main(args)
