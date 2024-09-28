@@ -1,7 +1,7 @@
 # proxy test
 Find and / or test multiple proxies for target website and more
 
-##### Python 3.7 or greater required
+##### Python 3.9 or greater required
 - Cmdline tool, there is no GUI
 - See `requirements.txt` for additional dependencies. Install with:
   - `python -m pip install -r requirements.txt`
