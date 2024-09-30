@@ -41,7 +41,7 @@ def grab_proxies(*_) -> None:
                 contents = preq.content.decode()
                 preq.close()
 
-                prox_lines = re_findall(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):([\d]{1,5})', contents)
+                prox_lines = re_findall(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})', contents)
 
                 for prox_line in prox_lines:
                     my_result += format_proxy(prox_line[0] + ':' + prox_line[1])

@@ -9,7 +9,7 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 from __future__ import annotations
 from argparse import Namespace
 from time import time as ltime
-from typing import Set, Union
+from typing import Set, Union, Tuple
 from urllib.parse import urlparse
 
 __DEBUG = False
@@ -100,14 +100,14 @@ class BaseConfig:
     def __init__(self) -> None:
         self.targets: Set[str] = set()
         self.proxies: Set[str] = set()
-        self.iproxies = 0
-        self.poolsize = 0
-        self.dest = ('', '')
-        self.timeout = 0
-        self.tries_count = 0
-        self.delay = 0
-        self.unsuccess_threshold = 0
-        self.order = ORDER_DEFAULT
+        self.iproxies: int = 0
+        self.poolsize: int = 0
+        self.dest: Tuple[str, str] = ('', '')
+        self.timeout: int = 0
+        self.tries_count: int = 0
+        self.delay: int = 0
+        self.unsuccess_threshold: int = 0
+        self.order: str = ORDER_DEFAULT
 
     def read(self, params: Namespace) -> None:
         self.targets.update(params.target)
@@ -122,7 +122,7 @@ class BaseConfig:
         self.order = params.order
 
 
-Config = BaseConfig()
+Config: BaseConfig = BaseConfig()
 
 
 class ProxyStruct:
