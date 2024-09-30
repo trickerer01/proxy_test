@@ -7,12 +7,11 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 
 from re import search as re_search
-from typing import Set
 
 from px_defs import __DEBUG
 
 
-def build_proxy_list(proxlist_str: str) -> Set[str]:
+def build_proxy_list(proxlist_str: str) -> set[str]:
     checklist = set()
     uchecklist = set()
     res_raw = proxlist_str.split('\n')

@@ -7,11 +7,11 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 
 import sys
+from collections.abc import Sequence
 from datetime import datetime
 from os import path, makedirs
 from threading import Thread
 from time import sleep as thread_sleep
-from typing import Sequence
 
 from px_builder import build_proxy_list
 from px_cmdargs import HelpPrintExitException, prepare_arglist

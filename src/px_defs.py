@@ -9,7 +9,6 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 from __future__ import annotations
 from argparse import Namespace
 from time import time as ltime
-from typing import Set, Union, Tuple
 from urllib.parse import urlparse
 
 __DEBUG = False
@@ -98,11 +97,11 @@ HELP_ARG_ORDER = f'Results output sorting order. Defaults is \'{ORDER_DEFAULT}\'
 
 class BaseConfig:
     def __init__(self) -> None:
-        self.targets: Set[str] = set()
-        self.proxies: Set[str] = set()
+        self.targets: set[str] = set()
+        self.proxies: set[str] = set()
         self.iproxies: int = 0
         self.poolsize: int = 0
-        self.dest: Tuple[str, str] = ('', '')
+        self.dest: tuple[str, str] = ('', '')
         self.timeout: int = 0
         self.tries_count: int = 0
         self.delay: int = 0
@@ -164,7 +163,7 @@ class ProxyStruct:
         self._total_time = (ltime() - self._start) - Config.delay * (Config.tries_count - 1)
         self.finalized = True
 
-    def _cmp_result(self, val1: Union[int, str], val2: Union[int, str]) -> ProxyStruct.Compare.VALUE_TYPE:
+    def _cmp_result(self, val1: int | str, val2: int | str) -> ProxyStruct.Compare.VALUE_TYPE:
         return self.Compare.LT if val1 < val2 else self.Compare.GT if val1 > val2 else self.Compare.EQ
 
     def _cmp_accessibility(self, other: ProxyStruct) -> ProxyStruct.Compare.VALUE_TYPE:

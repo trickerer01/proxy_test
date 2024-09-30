@@ -6,12 +6,12 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
+from __future__ import annotations
 from multiprocessing.dummy import Pool
 from random import shuffle
 from sys import exc_info
 from threading import Lock as ThreadLock
 from time import time as ltime, sleep as thread_sleep
-from typing import Dict, Set, Optional
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -24,7 +24,7 @@ from px_utils import print_s
 __all__ = ('check_proxies', 'result_lock', 'results')
 
 result_lock = ThreadLock()
-results: Dict[str, ProxyStruct] = dict()
+results: dict[str, ProxyStruct] = dict()
 
 
 def check_proxy(px: str) -> None:
@@ -42,7 +42,7 @@ def check_proxy(px: str) -> None:
         my_addrs = list(Config.targets)
         shuffle(my_addrs)
         del my_addrs[Config.tries_count:]
-        cur_prox: Optional[ProxyStruct] = None
+        cur_prox: ProxyStruct | None = None
         cur_time = ltime()
         for n in range(Config.tries_count):
             if n > 0:
@@ -92,7 +92,7 @@ def check_proxy(px: str) -> None:
             print_s(f'error214 - proxy {px} not found - not finalized')
 
 
-def check_proxies(proxlist: Set[str]) -> None:
+def check_proxies(proxlist: set[str]) -> None:
     pool = Pool(Config.poolsize)
     pool.map_async(check_proxy, proxlist, 1)
     pool.close()

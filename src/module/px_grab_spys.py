@@ -7,7 +7,6 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 
 from re import compile as re_compile, search as re_search, sub as re_sub
-from typing import Dict
 
 from requests import Session
 
@@ -56,7 +55,7 @@ def grab_proxies(amount_factor: int) -> None:
                     preq.close()
                     p, x = tuple(re_search(r'}\((\'[^.]+)', content_str).group(1).split(',60,60,'))
                     p_exec, symbols = p[1:-2], x[1:-1].split('^')
-                    chars_to_symbols: Dict[str, str] = {chr_arr[i]: symbols[i] or chr_arr[i] for i in range(len(chr_arr))}
+                    chars_to_symbols: dict[str, str] = {chr_arr[i]: symbols[i] or chr_arr[i] for i in range(len(chr_arr))}
                     p_exec = re_sub(r'\b(\w+)\b', lambda w: chars_to_symbols.get(w.group(1), '0'), p_exec)
                     vals = dict()
                     for s in p_exec.split(';'):

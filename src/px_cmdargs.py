@@ -6,10 +6,11 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
+from __future__ import annotations
 from argparse import ArgumentParser, Namespace
+from collections.abc import Sequence
 from os import path
 from re import compile as re_compile
-from typing import Sequence, Tuple, Union, Set
 
 from px_defs import (
     UTF8, HELP_ARG_VERSION, HELP_ARG_TARGET, HELP_ARG_PROXIES, RANGE_MARKER_RE, RANGE_MARKER, RANGE_MAX, HELP_ARG_POOLSIZE,
@@ -42,7 +43,7 @@ def is_addr(str_: str, *, proxy=False) -> bool:
     return str_.startswith(ADDR_TYPES_PROX) if proxy else str_.startswith(ADDR_TYPES_ADDR)
 
 
-def expand_addr_template(addr: str) -> Set[str]:
+def expand_addr_template(addr: str) -> set[str]:
     addrs_ex = set()
     gs = re_expandable_range.findall(addr)
     if gs:
@@ -57,7 +58,7 @@ def expand_addr_template(addr: str) -> Set[str]:
     return addrs_ex
 
 
-def target_addr(url_or_file: str) -> Set[str]:
+def target_addr(url_or_file: str) -> set[str]:
     addrs = set()
     invalid_addrs = list()
     is_file = path.isfile(url_or_file)
@@ -82,7 +83,7 @@ def target_addr(url_or_file: str) -> Set[str]:
     return addrs
 
 
-def target_prox(amount_or_url_or_file: str) -> Union[int, Set[str]]:
+def target_prox(amount_or_url_or_file: str) -> int | set[str]:
     proxys = set()
     invalid_proxys = list()
     is_file = path.isfile(amount_or_url_or_file)
@@ -116,7 +117,7 @@ def proxy_pool_size(size_str: str) -> int:
     return size
 
 
-def dest_path(pathstr: str) -> Tuple[str, str]:
+def dest_path(pathstr: str) -> tuple[str, str]:
     path_abs = path.abspath(path.expanduser(unquote(pathstr)))
     newpath = normalize_path(path_abs, append_slash=path.splitext(path_abs)[1] == '')
     dirpath, filename = path.split(newpath)
@@ -172,7 +173,7 @@ def execute_parser(parser: ArgumentParser, default_sub: ArgumentParser, args: Se
         raise HelpPrintExitException
 
 
-def create_parsers() -> Tuple[ArgumentParser, ArgumentParser]:
+def create_parsers() -> tuple[ArgumentParser, ArgumentParser]:
     parser = ArgumentParser(add_help=False)
     subs = parser.add_subparsers()
     par_cmd = subs.add_parser(PARSER_TITLE_CMD, description='Run using normal cmdline', add_help=False)
