@@ -185,6 +185,7 @@ def create_parsers() -> tuple[ArgumentParser, ArgumentParser]:
 
 def prepare_arglist(args: Sequence[str]) -> Namespace:
     parser, par_cmd = create_parsers()
+    par_cmd.usage = 'px_main.py --target URL_OR_FILE --proxy URL_OR_FILE_OR_AMOUNT [options...]'
     par_cmd.add_argument('--target', '-t', metavar='URL_OR_FILE', required=True,
                          help=HELP_ARG_TARGET, type=target_addr)
     par_cmd.add_argument('--proxy', '-p', metavar=f'URL_OR_FILE_OR_AMOUNT=1..{PROXY_AMOUNT_MAX:d}', default=PROXY_AMOUNT_DEFAULT,
