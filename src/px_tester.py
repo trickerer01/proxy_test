@@ -74,7 +74,8 @@ def check_proxy(px: str) -> None:
                 res_delay = ltime() - timer
 
             if cur_prox is not None:
-                cur_prox.delay.append(res_delay)
+                if suc:
+                    cur_prox.delay.append(res_delay)
                 cur_prox.accessibility.append(res_acc)
                 cur_prox.suc_count += 1 if suc is True else 0
                 if suc is False and n + 1 - cur_prox.suc_count >= Config.unsuccess_threshold:

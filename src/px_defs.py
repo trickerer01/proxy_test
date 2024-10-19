@@ -134,7 +134,7 @@ class ProxyStruct:
     def __init__(self, prefix: str, addr: str, delay: float, accessibility: int, success: bool, start: float) -> None:
         self.prefix = prefix
         self.addr = addr
-        self.delay = [delay]
+        self.delay = [delay] if success else list[type(delay)]()
         self.accessibility = [accessibility]
         self.suc_count = int(success)
         self.done = False
