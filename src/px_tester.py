@@ -94,8 +94,10 @@ def check_proxy(px: str) -> None:
 
 
 def check_proxies(proxlist: set[str]) -> None:
+    proxy_list = list(proxlist)
+    shuffle(proxy_list)
     pool = Pool(Config.poolsize)
-    pool.map_async(check_proxy, proxlist, 1)
+    pool.map_async(check_proxy, proxy_list, 1)
     pool.close()
     pool.join()
 
