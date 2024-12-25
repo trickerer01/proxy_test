@@ -12,16 +12,16 @@ from threading import Lock as ThreadLock
 from time import sleep as thread_sleep
 
 from bs4 import BeautifulSoup
+from fake_useragent import FakeUserAgent
 from requests import Session
-
-from px_ua import random_useragent
 
 ENABLED = True
 
 my_result = ''
 
 proxylist_addr = 'https://hidemyna.me/en/proxy-list/'
-default_headers = {'User-Agent': random_useragent(), 'Host': 'hidemyna.me', 'Referer': proxylist_addr, 'Connection': 'keep-alive'}
+ua_generator = FakeUserAgent()
+default_headers = {'User-Agent': ua_generator.ff, 'Host': 'hidemyna.me', 'Referer': proxylist_addr, 'Connection': 'keep-alive'}
 per_page = 64
 add_port_re = re_compile(r'<tr><td>(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})</td><td>(\d{2,5})</td>')
 ptype_re = re_compile(r'<td>(SOCKS5|HTTP)[^<]*<')

@@ -13,16 +13,17 @@ from sys import exc_info
 from threading import Lock as ThreadLock
 from time import time as ltime, sleep as thread_sleep
 
+from fake_useragent import FakeUserAgent
 from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 
 from px_defs import Config, ProxyStruct, __DEBUG, DEFAULT_HEADERS, STATUS_OK, EXTRA_ACCEPTED_CODES, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS
-from px_ua import random_useragent
 from px_utils import print_s
 
 __all__ = ('check_proxies', 'result_lock', 'results')
 
+us_generator = FakeUserAgent(fallback='Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Goanna/6.7 Firefox/102.0 PaleMoon/33.3.1')
 result_lock = ThreadLock()
 results: dict[str, ProxyStruct] = dict()
 
@@ -36,7 +37,7 @@ def check_proxy(px: str) -> None:
         cs.mount(ADDR_TYPE_HTTP, HTTPAdapter(pool_maxsize=1, max_retries=0))
         cs.mount(ADDR_TYPE_HTTPS, HTTPAdapter(pool_maxsize=1, max_retries=0))
         cs.headers.update(DEFAULT_HEADERS.copy())
-        cs.headers.update({'User-Agent': random_useragent()})
+        cs.headers.update({'User-Agent': us_generator.ff})
         cs.proxies.update({'all': px})
 
         my_addrs = list(Config.targets)

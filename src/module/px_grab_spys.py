@@ -8,9 +8,9 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 
 from re import compile as re_compile, search as re_search, sub as re_sub
 
+from fake_useragent import FakeUserAgent
 from requests import Session
 
-from px_ua import random_useragent
 from px_utils import print_s
 
 ENABLED = True
@@ -18,7 +18,8 @@ ENABLED = True
 my_result = ''
 
 proxylist_addr = 'https://spys.one/proxys/'
-default_headers = {'User-Agent': random_useragent(), 'Host': 'spys.one', 'Referer': proxylist_addr, 'Connection': 'keep-alive'}
+ua_generator = FakeUserAgent()
+default_headers = {'User-Agent': ua_generator.ff, 'Host': 'spys.one', 'Referer': proxylist_addr, 'Connection': 'keep-alive'}
 ip_re = re_compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
 
 

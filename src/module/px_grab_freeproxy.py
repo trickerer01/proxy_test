@@ -9,15 +9,15 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 from re import compile as re_compile, search as re_search, findall as re_findall
 
 from bs4 import BeautifulSoup
+from fake_useragent import FakeUserAgent
 from requests import Session
-
-from px_ua import random_useragent
 
 ENABLED = True
 
 my_result = ''
 
-default_headers = {'User-Agent': random_useragent(), 'Host': 'free-proxy.cz'}
+ua_generator = FakeUserAgent()
+default_headers = {'User-Agent': ua_generator.ff, 'Host': 'free-proxy.cz'}
 
 proxylist_addr = 'http://free-proxy.cz/en/proxylist/country/all/http/ping/level'
 proxylist_lvls = ['1', '2']
