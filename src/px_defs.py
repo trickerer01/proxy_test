@@ -13,6 +13,9 @@ from urllib.parse import urlparse
 
 __DEBUG = False
 
+MIN_PYTHON_VERSION = (3, 10)
+MIN_PYTHON_VERSION_STR = f'{MIN_PYTHON_VERSION[0]}.{MIN_PYTHON_VERSION[1]}'
+
 OUTPUT_FILE_NAME = '!px_test_results.txt'
 
 UTF8 = 'utf-8'

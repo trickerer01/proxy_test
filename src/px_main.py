@@ -15,7 +15,7 @@ from time import sleep as thread_sleep
 
 from px_builder import build_proxy_list
 from px_cmdargs import HelpPrintExitException, prepare_arglist
-from px_defs import Config, UTF8
+from px_defs import Config, UTF8, MIN_PYTHON_VERSION, MIN_PYTHON_VERSION_STR
 from px_grabber import fetch_all, MODULES
 from px_tester import check_proxies, result_lock, results
 from px_utils import module_name_short, print_s
@@ -122,7 +122,7 @@ def run_main(args: Sequence[str]) -> None:
 
 
 def main_sync(args: Sequence[str]) -> None:
-    assert sys.version_info >= (3, 9), 'Minimum python version required is 3.9!'
+    assert sys.version_info >= MIN_PYTHON_VERSION, f'Minimum python version required is {MIN_PYTHON_VERSION_STR}!'
 
     try:
         run_main(args)

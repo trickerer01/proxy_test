@@ -179,7 +179,7 @@ def create_parsers() -> tuple[ArgumentParser, ArgumentParser]:
     par_cmd = subs.add_parser(PARSER_TITLE_CMD, description='Run using normal cmdline', add_help=False)
     [p.add_argument('--help', action='help', help='Print this message') for p in (par_cmd,)]
     [p.add_argument('--version', action='version', help=HELP_ARG_VERSION, version=f'{APP_NAME} {APP_VERSION}') for p in (par_cmd,)]
-    [p.set_defaults(**{PARSER_TYPE_PARAM: t}) for p, t in zip((par_cmd,), (PARSER_TITLE_CMD,))]
+    [p.set_defaults(**{PARSER_TYPE_PARAM: t}) for p, t in zip((par_cmd,), (PARSER_TITLE_CMD,), strict=True)]
     return parser, par_cmd
 
 
