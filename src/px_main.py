@@ -121,18 +121,19 @@ def run_main(args: Sequence[str]) -> None:
                 continue
 
 
-def main_sync(args: Sequence[str]) -> None:
+def main_sync(args: Sequence[str]) -> int:
     assert sys.version_info >= MIN_PYTHON_VERSION, f'Minimum python version required is {MIN_PYTHON_VERSION_STR}!'
 
     try:
         run_main(args)
+        return 0
     except (KeyboardInterrupt, SystemExit):
         print('Warning: catched KeyboardInterrupt/SystemExit...')
+        return 1
 
 
 if __name__ == '__main__':
-    main_sync(sys.argv[1:])
-    exit(0)
+    sys.exit(main_sync(sys.argv[1:]))
 
 #
 #
