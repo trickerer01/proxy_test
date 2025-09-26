@@ -6,7 +6,6 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
-from __future__ import annotations
 from argparse import ArgumentParser, Namespace
 from collections.abc import Sequence
 from os import path
