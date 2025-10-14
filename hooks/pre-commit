@@ -1,0 +1,5 @@
+#!/bin/sh
+python src/px_genrev.py
+git add src/px_version.py
+git add pyproject.toml
+ruff check --fix

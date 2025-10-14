@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'proxy_test'
-version = '1.0.100'
+version = '1.0.101'
 authors = [
     {name = 'trickerer01'},
 ]
