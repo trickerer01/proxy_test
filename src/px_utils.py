@@ -8,9 +8,9 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 
 from threading import Lock as ThreadLock
 
-from px_defs import SLASH, BL
+from px_defs import BL, SLASH
 
-__all__ = ('print_s', 'unquote', 'normalize_path', 'module_name_short')
+__all__ = ('module_name_short', 'normalize_path', 'print_s', 'unquote')
 
 print_lock = ThreadLock()
 

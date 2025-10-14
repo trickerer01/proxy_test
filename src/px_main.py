@@ -6,17 +6,17 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
+import datetime
+import os
 import sys
+import time
 from collections.abc import Sequence
-from datetime import datetime
-from os import path, makedirs
 from threading import Thread
-from time import sleep as thread_sleep
 
 from px_builder import build_proxy_list
 from px_cmdargs import HelpPrintExitException, prepare_arglist
-from px_defs import Config, UTF8, MIN_PYTHON_VERSION, MIN_PYTHON_VERSION_STR
-from px_grabber import fetch_all, MODULES
+from px_defs import MIN_PYTHON_VERSION, MIN_PYTHON_VERSION_STR, UTF8, Config
+from px_grabber import MODULES, fetch_all
 from px_tester import check_proxies, result_lock, results
 from px_utils import module_name_short, print_s
 
@@ -29,7 +29,7 @@ def cycle_results() -> None:
     while True:
         if exiting:
             break
-        thread_sleep(0.5)
+        time.sleep(0.5)
         with result_lock:
             for res in results.values():
                 if res.finalized and not res.done:
@@ -48,8 +48,8 @@ def run_main(args: Sequence[str]) -> None:
     except HelpPrintExitException:
         return
 
-    start_datetime = datetime.now()
-    start_date = start_datetime.strftime("%d-%m-%Y %H:%M:%S")
+    start_datetime = datetime.datetime.now()
+    start_date = start_datetime.strftime('%d-%m-%Y %H:%M:%S')
 
     print(f'STARTED AT {start_date}')
     print(f'\n{len(Config.targets)} targets parsed')
@@ -78,8 +78,8 @@ def run_main(args: Sequence[str]) -> None:
     exiting = True
     timed_results_thread.join()
 
-    end_datetime = datetime.now()
-    end_date = end_datetime.strftime("%d-%m-%Y %H:%M:%S")
+    end_datetime = datetime.datetime.now()
+    end_date = end_datetime.strftime('%d-%m-%Y %H:%M:%S')
 
     print(f'\nFINISHED AT {end_date}')
     print('\nCompleted. Filtering out useless entries...')
@@ -99,8 +99,8 @@ def run_main(args: Sequence[str]) -> None:
     print(' ' + '\n '.join(str(res) for res in proxy_finals))
 
     if len(proxy_finals) > 0:
-        if not path.isdir(Config.dest[0]):
-            makedirs(Config.dest[0])
+        if not os.path.isdir(Config.dest[0]):
+            os.makedirs(Config.dest[0])
         pindex = -1
         while True:
             pindex += 1
@@ -109,7 +109,7 @@ def run_main(args: Sequence[str]) -> None:
                 break
             filepath = '/'.join(Config.dest)
             if pindex:
-                fp, ext = path.splitext(filepath)
+                fp, ext = os.path.splitext(filepath)
                 filepath = f'{fp} ({pindex:d}){ext}'
             try:
                 with open(filepath, 'at', encoding=UTF8) as ofile:

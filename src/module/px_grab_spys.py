@@ -6,7 +6,7 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
-from re import compile as re_compile, search as re_search, sub as re_sub
+import re
 
 from fake_useragent import FakeUserAgent
 from requests import Session
@@ -20,12 +20,12 @@ my_result = ''
 proxylist_addr = 'https://spys.one/proxys/'
 ua_generator = FakeUserAgent()
 default_headers = {'User-Agent': ua_generator.ff, 'Host': 'spys.one', 'Referer': proxylist_addr, 'Connection': 'keep-alive'}
-ip_re = re_compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
+ip_re = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
 
 
 # required format: {"export_address": ["3.210.193.173"], "port": 80}
 def format_proxy(proxline: str, ptype: str, prefix) -> str:
-    prox_ap = re_search(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{2,5})', proxline)
+    prox_ap = re.search(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{2,5})', proxline)
     if prox_ap:
         addr, port = tuple(prox_ap.group(1).split(':', 1))
         prox_string = '[' + prefix + '] {"export_address": ["' + ptype + '://' + addr + '"], "port": ' + port + '}\n'
@@ -54,10 +54,10 @@ def grab_proxies(amount_factor: int) -> None:
                     preq.raise_for_status()
                     content_str = preq.content.decode()
                     preq.close()
-                    p, x = tuple(re_search(r'}\((\'[^.]+)', content_str).group(1).split(',60,60,'))
+                    p, x = tuple(re.search(r'}\((\'[^.]+)', content_str).group(1).split(',60,60,'))
                     p_exec, symbols = p[1:-2], x[1:-1].split('^')
                     chars_to_symbols: dict[str, str] = {chr_arr[i]: symbols[i] or chr_arr[i] for i in range(len(chr_arr))}
-                    p_exec = re_sub(r'\b(\w+)\b', lambda w: chars_to_symbols.get(w.group(1), '0'), p_exec)
+                    p_exec = re.sub(r'\b(\w+)\b', lambda w: chars_to_symbols.get(w.group(1), '0'), p_exec)
                     vals = dict[str, str]()
                     for s in p_exec.split(';'):
                         k, v = tuple(s.split('=', 1))
@@ -70,14 +70,14 @@ def grab_proxies(amount_factor: int) -> None:
                                 val ^= int(vals[vs])
                         v = str(val)
                         vals[k] = vals.get(v, v)
-                    rows_raw = (re_sub(r'\)</script></font></td>.+', '',
+                    rows_raw = (re.sub(r'\)</script></font></td>.+', '',
                                        content_str.replace('<td colspan=1><font class=spy14>', '\n')
                                        .replace(r'<script type="text/javascript">document.write("<font class=spy2>:<\/font>"+', ':'))
                                 ).split('\n')
                     rows = [row for row in rows_raw if ip_re.match(row)]
                     for ri, row in enumerate(rows):
                         ip, expr = tuple(row.split(':', 1))
-                        exprs = re_sub(r'[()]', '', re_sub(r'(\w+)', lambda w: vals.get(w.group(1)), expr)).split('+')
+                        exprs = re.sub(r'[()]', '', re.sub(r'(\w+)', lambda w: vals.get(w.group(1)), expr)).split('+')
                         for ei in range(len(exprs)):
                             evs = exprs[ei].split('^')
                             assert len(evs) == 2

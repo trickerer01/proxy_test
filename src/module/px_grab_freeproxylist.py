@@ -6,7 +6,7 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
-from re import findall as re_findall
+import re
 
 from requests import Session
 
@@ -35,7 +35,7 @@ def grab_proxies(*_) -> None:
             contents = preq.content.decode()
             preq.close()
 
-            prox_lines = re_findall(r'<tr><td>(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})</td><td>(\d{2,5})</td>', contents)
+            prox_lines = re.findall(r'<tr><td>(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})</td><td>(\d{2,5})</td>', contents)
 
             for prox_line in prox_lines:
                 my_result += format_proxy(prox_line[0] + ':' + prox_line[1])

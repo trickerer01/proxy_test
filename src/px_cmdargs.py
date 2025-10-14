@@ -6,19 +6,44 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
+import os
+import re
 from argparse import ArgumentParser, Namespace
 from collections.abc import Sequence
-from os import path
-from re import compile as re_compile
 
 from px_defs import (
-    UTF8, HELP_ARG_VERSION, HELP_ARG_TARGET, HELP_ARG_PROXIES, RANGE_MARKER_RE, RANGE_MARKER, RANGE_MAX, HELP_ARG_POOLSIZE,
-    PROXY_CHECK_POOL_MAX, PROXY_AMOUNT_MAX, PROXY_AMOUNT_DEFAULT, HELP_ARG_DEST, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS, ADDR_TYPE_SOCKS5,
-    PROXY_CHECK_TRIES_DEFAULT, PROXY_CHECK_UNSUCCESS_THRESHOLD_DEFAULT, HELP_ARG_TRIESCOUNT, HELP_ARG_UNSUCCESSTHRESHOLD,
-    PROXY_CHECK_TRIES_MAX, PROXY_CHECK_TIMEOUT_MIN, PROXY_CHECK_TIMEOUT_DEFAULT, HELP_ARG_TIMEOUT, ORDER_ACCESSIBILITY, ORDER_ADDRESS,
-    ORDER_DEFAULT, HELP_ARG_ORDER, PROXY_CHECK_DELAY_DEFAULT, PROXY_CHECK_DELAY_MIN, HELP_ARG_DELAY,
+    ADDR_TYPE_HTTP,
+    ADDR_TYPE_HTTPS,
+    ADDR_TYPE_SOCKS5,
+    HELP_ARG_DELAY,
+    HELP_ARG_DEST,
+    HELP_ARG_ORDER,
+    HELP_ARG_POOLSIZE,
+    HELP_ARG_PROXIES,
+    HELP_ARG_TARGET,
+    HELP_ARG_TIMEOUT,
+    HELP_ARG_TRIESCOUNT,
+    HELP_ARG_UNSUCCESSTHRESHOLD,
+    HELP_ARG_VERSION,
+    ORDER_ACCESSIBILITY,
+    ORDER_ADDRESS,
+    ORDER_DEFAULT,
+    PROXY_AMOUNT_DEFAULT,
+    PROXY_AMOUNT_MAX,
+    PROXY_CHECK_DELAY_DEFAULT,
+    PROXY_CHECK_DELAY_MIN,
+    PROXY_CHECK_POOL_MAX,
+    PROXY_CHECK_TIMEOUT_DEFAULT,
+    PROXY_CHECK_TIMEOUT_MIN,
+    PROXY_CHECK_TRIES_DEFAULT,
+    PROXY_CHECK_TRIES_MAX,
+    PROXY_CHECK_UNSUCCESS_THRESHOLD_DEFAULT,
+    RANGE_MARKER,
+    RANGE_MARKER_RE,
+    RANGE_MAX,
+    UTF8,
 )
-from px_utils import unquote, normalize_path
+from px_utils import normalize_path, unquote
 from px_version import APP_NAME, APP_VERSION
 
 PARSER_TYPE_PARAM = 'zzzparser_type'
@@ -31,7 +56,7 @@ ADDR_TYPES_PROX = (ADDR_TYPE_HTTP, ADDR_TYPE_SOCKS5)
 
 ORDER_TYPES = (ORDER_ACCESSIBILITY, ORDER_ADDRESS)
 
-re_expandable_range = re_compile(fr'^.+{RANGE_MARKER_RE}.*?$')
+re_expandable_range = re.compile(fr'^.+{RANGE_MARKER_RE}.*?$')
 
 
 class HelpPrintExitException(Exception):
@@ -59,8 +84,8 @@ def expand_addr_template(addr: str) -> set[str]:
 
 def target_addr(url_or_file: str) -> set[str]:
     addrs = set()
-    invalid_addrs = list()
-    is_file = path.isfile(url_or_file)
+    invalid_addrs = []
+    is_file = os.path.isfile(url_or_file)
     if is_file:
         with open(url_or_file, 'rt', encoding=UTF8) as addrsfile:
             for idx, line in enumerate(addrsfile.readlines()):
@@ -84,8 +109,8 @@ def target_addr(url_or_file: str) -> set[str]:
 
 def target_prox(amount_or_url_or_file: str) -> int | set[str]:
     proxys = set()
-    invalid_proxys = list()
-    is_file = path.isfile(amount_or_url_or_file)
+    invalid_proxys = []
+    is_file = os.path.isfile(amount_or_url_or_file)
     if amount_or_url_or_file in [str(amount) for amount in range(PROXY_AMOUNT_DEFAULT, PROXY_AMOUNT_MAX + 1)]:
         return int(amount_or_url_or_file)
     elif is_file:
@@ -117,14 +142,14 @@ def proxy_pool_size(size_str: str) -> int:
 
 
 def dest_path(pathstr: str) -> tuple[str, str]:
-    path_abs = path.abspath(path.expanduser(unquote(pathstr)))
-    newpath = normalize_path(path_abs, append_slash=path.splitext(path_abs)[1] == '')
-    dirpath, filename = path.split(newpath)
-    assert path.isdir(dirpath), f'Error: Invalid path \'{pathstr}\' (folder doesn\'t exist)'
+    path_abs = os.path.abspath(os.path.expanduser(unquote(pathstr)))
+    newpath = normalize_path(path_abs, append_slash=os.path.splitext(path_abs)[1] == '')
+    dirpath, filename = os.path.split(newpath)
+    assert os.path.isdir(dirpath), f'Error: Invalid path \'{pathstr}\' (folder doesn\'t exist)'
     return dirpath, filename
 
 
-def valid_int(val: str, *, lb: int = None, ub: int = None) -> int:
+def valid_int(val: str, *, lb: int | None = None, ub: int | None = None) -> int:
     val = int(val)
     assert lb is None or val >= lb
     assert ub is None or val <= ub
@@ -191,7 +216,7 @@ def prepare_arglist(args: Sequence[str]) -> Namespace:
                          help=HELP_ARG_PROXIES, type=target_prox)
     par_cmd.add_argument('--pool-size', '-s', metavar=f'1..{PROXY_CHECK_POOL_MAX:d}', default=0,
                          help=HELP_ARG_POOLSIZE, type=proxy_pool_size)
-    par_cmd.add_argument('--dest', '-d', metavar='PATH', default=dest_path(path.curdir),
+    par_cmd.add_argument('--dest', '-d', metavar='PATH', default=dest_path(os.path.curdir),
                          help=HELP_ARG_DEST, type=dest_path)
     par_cmd.add_argument('--timeout', '-e', metavar='SECONDS', default=PROXY_CHECK_TIMEOUT_DEFAULT,
                          help=HELP_ARG_TIMEOUT, type=timeout_seconds)

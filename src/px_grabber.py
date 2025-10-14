@@ -9,30 +9,30 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 from threading import Thread
 
 from module import (
-    px_grab_fate as pg_fate,
-    px_grab_freeproxy as pg_fp,
-    px_grab_freeproxylist as pg_fpl,
-    px_grab_hidemyna as pg_hid,
-    px_grab_proxylist as pg_pl,
-    px_grab_txt as pg_txt,
-    px_grab_spys as pg_sps,
+    px_grab_fate,
+    px_grab_freeproxy,
+    px_grab_freeproxylist,
+    px_grab_hidemyna,
+    px_grab_proxylist,
+    px_grab_spys,
+    px_grab_txt,
 )
 from px_utils import module_name_short
 
 MODULES = (
-    pg_fate,
-    pg_fp,
-    pg_fpl,
-    pg_hid,
-    pg_pl,
-    pg_txt,
-    pg_sps,
+    px_grab_fate,
+    px_grab_freeproxy,
+    px_grab_freeproxylist,
+    px_grab_hidemyna,
+    px_grab_proxylist,
+    px_grab_spys,
+    px_grab_txt,
 )
 
 
 def fetch_all(amount_factor: int) -> str:
     try:
-        grab_threads = list()
+        grab_threads = []
         for modul in MODULES:
             if not modul.ENABLED:
                 continue

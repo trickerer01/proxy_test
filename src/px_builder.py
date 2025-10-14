@@ -6,7 +6,7 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
-from re import search as re_search
+import re
 
 from px_defs import __DEBUG
 
@@ -26,9 +26,9 @@ def build_proxy_list(proxlist_str: str) -> set[str]:
         if len(res_raw[idx]) <= 1:
             drop = True
         if not drop:
-            addr_re = re_search(r'\"((?:http|socks5)://\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\"\]', res_raw[idx])
-            port_re = re_search(r'\"port\": (\d+)', res_raw[idx])
-            pref_re = re_search(r'(\[(?:[A-Z]{2,3}|\?{2})\])', res_raw[idx])
+            addr_re = re.search(r'\"((?:http|socks5)://\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\"\]', res_raw[idx])
+            port_re = re.search(r'\"port\": (\d+)', res_raw[idx])
+            pref_re = re.search(r'(\[(?:[A-Z]{2,3}|\?{2})\])', res_raw[idx])
             if addr_re is None:  # "export_address": [],
                 drop = True
             else:

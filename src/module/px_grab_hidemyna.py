@@ -6,10 +6,10 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
+import re
+import time
 from multiprocessing.dummy import Pool
-from re import compile as re_compile, findall as re_findall
 from threading import Lock as ThreadLock
-from time import sleep as thread_sleep
 
 from bs4 import BeautifulSoup
 from fake_useragent import FakeUserAgent
@@ -23,8 +23,8 @@ proxylist_addr = 'https://hidemyna.me/en/proxy-list/'
 ua_generator = FakeUserAgent()
 default_headers = {'User-Agent': ua_generator.ff, 'Host': 'hidemyna.me', 'Referer': proxylist_addr, 'Connection': 'keep-alive'}
 per_page = 64
-add_port_re = re_compile(r'<tr><td>(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})</td><td>(\d{2,5})</td>')
-ptype_re = re_compile(r'<td>(SOCKS5|HTTP)[^<]*<')
+add_port_re = re.compile(r'<tr><td>(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})</td><td>(\d{2,5})</td>')
+ptype_re = re.compile(r'<td>(SOCKS5|HTTP)[^<]*<')
 myres_lock = ThreadLock()
 
 
@@ -41,8 +41,8 @@ def grab_proxies(*_) -> None:
         global my_result
         try:
             content = str(raw)
-            ptype_results = re_findall(ptype_re, content)
-            addr_port_results = re_findall(add_port_re, content)
+            ptype_results = re.findall(ptype_re, content)
+            addr_port_results = re.findall(add_port_re, content)
 
             if len(addr_port_results) != len(ptype_results):
                 raise KeyError('Assertion error: wrong results array length')
@@ -95,9 +95,9 @@ def grab_proxies(*_) -> None:
             while len(ress) > 0:
                 if ress[0].ready():
                     ress.pop(0)
-                    thread_sleep(0.1)
+                    time.sleep(0.1)
                     continue
-                thread_sleep(0.2)
+                time.sleep(0.2)
 
             pool.terminate()
 

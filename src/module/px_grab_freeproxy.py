@@ -6,7 +6,7 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
-from re import compile as re_compile, search as re_search, findall as re_findall
+import re
 
 from bs4 import BeautifulSoup
 from fake_useragent import FakeUserAgent
@@ -25,8 +25,8 @@ proxylist_lvls = ['1', '2']
 
 # required format: [PREFIX] {"export_address": ["type://3.210.193.173"], "port": 80}
 def format_prox(proxline: str) -> str:
-    prox_addr = re_search(r'^decode\(\"([\d\w=]+)\"\)$', proxline).group(1)  # Base64.decode("MTQ5LjI0OC41MC4yMDY=")
-    prox_port = re_search(r'^fport\" style=\\\'\\\'>(\d+)<$', proxline).group(1)  # <span class="fport" style=\'\'>3128</span>
+    prox_addr = re.search(r'^decode\(\"([\d\w=]+)\"\)$', proxline).group(1)  # Base64.decode("MTQ5LjI0OC41MC4yMDY=")
+    prox_port = re.search(r'^fport\" style=\\\'\\\'>(\d+)<$', proxline).group(1)  # <span class="fport" style=\'\'>3128</span>
     prox_string = '[??] {"export_address": ["' + 'http://' + prox_addr + '"], "port": ' + prox_port + '}'
     return prox_string + '\n'
 
@@ -36,7 +36,7 @@ def grab_proxies(*_) -> None:
     def proc_page() -> None:
         global my_result
         try:
-            prox_lines_matches = re_findall(r'^<tr><td style=.+</small></td></tr>$', str(res_raw))
+            prox_lines_matches = re.findall(r'^<tr><td style=.+</small></td></tr>$', str(res_raw))
             for match in prox_lines_matches:
                 my_result += format_prox(match)
         except Exception as err:
@@ -51,7 +51,7 @@ def grab_proxies(*_) -> None:
                 preq.close()
 
                 # <a href="/en/proxylist/country/all/all/ping/level1/5">
-                pages = list(res_raw.find_all('a', href=re_compile(r'^/en/proxylist/country/all/http/uptime/level\d/\d$')))
+                pages = list(res_raw.find_all('a', href=re.compile(r'^/en/proxylist/country/all/http/uptime/level\d/\d$')))
                 i = 0
                 while i < len(pages):
                     pages[i] = int(pages[i])

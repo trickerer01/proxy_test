@@ -6,8 +6,8 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
-from base64 import b64decode
-from re import findall as re_findall
+import base64
+import re
 
 from requests import Session
 
@@ -38,10 +38,10 @@ def grab_proxies(*_) -> None:
                 contents = preq.content.decode()
                 preq.close()
 
-                prox_lines = re_findall(r'Proxy\(\'([\w\d=+]+)\'\)', contents)
+                prox_lines = re.findall(r'Proxy\(\'([\w\d=+]+)\'\)', contents)
 
                 for prox_line in prox_lines:
-                    my_result += format_proxy(b64decode(prox_line).decode())
+                    my_result += format_proxy(base64.b64decode(prox_line).decode())
 
             except Exception:
                 pass

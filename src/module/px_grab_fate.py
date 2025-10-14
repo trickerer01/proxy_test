@@ -6,7 +6,7 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
-from re import search as re_search
+import re
 
 from requests import Session
 
@@ -19,8 +19,8 @@ proxylist_addr = 'https://raw.githubusercontent.com/fate0/proxylist/master/proxy
 
 # required format: [PREFIX] {"export_address": ["type://3.210.193.173"], "port": 80}
 def format_proxy(proxline: str) -> str:
-    prox_addr_r = re_search(r'\"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\"\]', proxline)
-    prox_port_r = re_search(r'\"port\": (\d+)', proxline)
+    prox_addr_r = re.search(r'\"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\"\]', proxline)
+    prox_port_r = re.search(r'\"port\": (\d+)', proxline)
     prox_string = '[??] {"export_address": ["' + 'http://' + prox_addr_r.group(1) + '"], "port": ' + prox_port_r.group(1) + '}\n' \
         if prox_addr_r and prox_port_r else ''
     return prox_string

@@ -6,25 +6,25 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 #
 
+import random
+import sys
+import time
 from multiprocessing.dummy import Pool
-from random import shuffle
-from sys import exc_info
 from threading import Lock as ThreadLock
-from time import time as ltime, sleep as thread_sleep
 
 from fake_useragent import FakeUserAgent
 from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 
-from px_defs import Config, ProxyStruct, __DEBUG, DEFAULT_HEADERS, STATUS_OK, EXTRA_ACCEPTED_CODES, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS
+from px_defs import __DEBUG, ADDR_TYPE_HTTP, ADDR_TYPE_HTTPS, DEFAULT_HEADERS, EXTRA_ACCEPTED_CODES, STATUS_OK, Config, ProxyStruct
 from px_utils import print_s
 
 __all__ = ('check_proxies', 'result_lock', 'results')
 
 us_generator = FakeUserAgent(fallback='Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Goanna/6.7 Firefox/102.0 PaleMoon/33.3.1')
 result_lock = ThreadLock()
-results: dict[str, ProxyStruct] = dict()
+results: dict[str, ProxyStruct] = {}
 
 
 def check_proxy(px: str) -> None:
@@ -40,14 +40,14 @@ def check_proxy(px: str) -> None:
         cs.proxies.update({'all': px})
 
         my_addrs = list(Config.targets)
-        shuffle(my_addrs)
+        random.shuffle(my_addrs)
         del my_addrs[Config.tries_count:]
         cur_prox: ProxyStruct | None = None
-        cur_time = ltime()
+        cur_time = time.time()
         for n in range(Config.tries_count):
             if n > 0:
-                thread_sleep(float(Config.delay))
-            timer = ltime()
+                time.sleep(float(Config.delay))
+            timer = time.time()
             try:
                 with cs.request('GET', my_addrs[n % len(my_addrs)], timeout=float(Config.timeout)) as r:
                     if r.ok is False or r.status_code != STATUS_OK:
@@ -64,14 +64,14 @@ def check_proxy(px: str) -> None:
                     res_acc = err.response.status_code
                     suc = True
                 elif __DEBUG:
-                    print_s(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
+                    print_s(f'{px} - error {sys.exc_info()[0]!s}: {sys.exc_info()[1]!s}')
             except Exception:
                 res_acc = -2
                 suc = False
                 if __DEBUG:
-                    print_s(f'{px} - error {str(exc_info()[0])}: {str(exc_info()[1])}')
+                    print_s(f'{px} - error {sys.exc_info()[0]!s}: {sys.exc_info()[1]!s}')
             finally:
-                res_delay = ltime() - timer
+                res_delay = time.time() - timer
 
             if cur_prox is not None:
                 if suc:
@@ -95,7 +95,7 @@ def check_proxy(px: str) -> None:
 
 def check_proxies(proxlist: set[str]) -> None:
     proxy_list = list(proxlist)
-    shuffle(proxy_list)
+    random.shuffle(proxy_list)
     pool = Pool(Config.poolsize)
     pool.map_async(check_proxy, proxy_list, 1)
     pool.close()

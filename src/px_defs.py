@@ -7,9 +7,10 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 #
 
 from __future__ import annotations
+
+import time
+import urllib.parse
 from argparse import Namespace
-from time import time as ltime
-from urllib.parse import urlparse
 
 __DEBUG = False
 
@@ -34,7 +35,7 @@ BL = '\\'
 SLASH = '/'
 MARKER = '#'
 RANGE_MARKER = f'{MARKER}%d-%d{MARKER}'
-RANGE_MARKER_RE = RANGE_MARKER.replace("%d", f"({BL}d+)").replace("-", f"{BL}-").replace(MARKER, f"{BL}{MARKER}")
+RANGE_MARKER_RE = RANGE_MARKER.replace('%d', f'({BL}d+)').replace('-', f'{BL}-').replace(MARKER, f'{BL}{MARKER}')
 RANGE_MAX = 1000
 
 STATUS_OK = 200
@@ -163,7 +164,7 @@ class ProxyStruct:
             valid_delays += int(val >= 0.0)
 
         self._average_delay = average_delay / max(valid_delays, 1)
-        self._total_time = (ltime() - self._start) - Config.delay * (Config.tries_count - 1)
+        self._total_time = (time.time() - self._start) - Config.delay * (Config.tries_count - 1)
         self.finalized = True
 
     def _cmp_result(self, val1: int | str, val2: int | str) -> ProxyStruct.Compare.VALUE_TYPE:
@@ -176,7 +177,7 @@ class ProxyStruct:
         if self.addr == other.addr:
             return self.Compare.EQ
         try:
-            url1, url2 = urlparse(self.addr), urlparse(other.addr)
+            url1, url2 = urllib.parse.urlparse(self.addr), urllib.parse.urlparse(other.addr)
             parts1, parts2 = tuple(u.hostname.split('.') for u in (url1, url2))
             can_compare = len(parts1) == len(parts2) and all(all(p.isnumeric() for p in parts) for parts in (parts1, parts2))
             assert can_compare
