@@ -84,7 +84,7 @@ def expand_addr_template(addr: str) -> set[str]:
 
 def target_addr(url_or_file: str) -> set[str]:
     addrs = set()
-    invalid_addrs = []
+    invalid_addrs: list[str] = []
     is_file = os.path.isfile(url_or_file)
     if is_file:
         with open(url_or_file, 'rt', encoding=UTF8) as addrsfile:
@@ -109,7 +109,7 @@ def target_addr(url_or_file: str) -> set[str]:
 
 def target_prox(amount_or_url_or_file: str) -> int | set[str]:
     proxys = set()
-    invalid_proxys = []
+    invalid_proxys: list[str] = []
     is_file = os.path.isfile(amount_or_url_or_file)
     if amount_or_url_or_file in [str(amount) for amount in range(PROXY_AMOUNT_DEFAULT, PROXY_AMOUNT_MAX + 1)]:
         return int(amount_or_url_or_file)
@@ -143,7 +143,7 @@ def proxy_pool_size(size_str: str) -> int:
 
 def dest_path(pathstr: str) -> tuple[str, str]:
     path_abs = os.path.abspath(os.path.expanduser(unquote(pathstr)))
-    newpath = normalize_path(path_abs, append_slash=os.path.splitext(path_abs)[1] == '')
+    newpath = normalize_path(path_abs, append_slash=not os.path.splitext(path_abs)[1])
     dirpath, filename = os.path.split(newpath)
     assert os.path.isdir(dirpath), f'Error: Invalid path \'{pathstr}\' (folder doesn\'t exist)'
     return dirpath, filename

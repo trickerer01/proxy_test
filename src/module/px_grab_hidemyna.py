@@ -9,6 +9,7 @@ Author: trickerer (https://github.com/trickerer, https://github.com/trickerer01)
 import re
 import time
 from multiprocessing.dummy import Pool
+from multiprocessing.pool import ThreadPool
 from threading import Lock as ThreadLock
 
 from bs4 import BeautifulSoup
@@ -86,7 +87,7 @@ def grab_proxies(*_) -> None:
             # pages = res_raw.find_all('a', attrs={'href': re_compile(r'^/en/proxy-list/\?start=\d+#list$')})
             num_pages = 1  # list(sorted(list(int(p.contents[0] if len(p.contents) > 0 else 0) for p in pages)))[-1]
 
-            pool = Pool(min(5, num_pages))
+            pool: ThreadPool = Pool(min(5, num_pages))
             ress = []
             for i in range(num_pages):
                 ress.append(pool.apply_async(get_and_proc_page, args=(i,)))

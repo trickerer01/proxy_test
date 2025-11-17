@@ -199,7 +199,7 @@ class ProxyStruct:
         return result == self.Compare.LT
 
     def __str__(self) -> str:
-        return (f'{self.prefix} {self.addr} ({self._average_delay:.3f}s) - {self.suc_count:d}/{Config.tries_count :d} '
+        return (f'{self.prefix} {self.addr} ({self._average_delay:.3f}s) - {self.suc_count:d}/{Config.tries_count:d} '
                 f'in {self._total_time:.2f}s [{",".join([str(a) for a in self.accessibility])}]')
 
 #
