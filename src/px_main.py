@@ -26,9 +26,7 @@ exiting = False
 
 
 def cycle_results() -> None:
-    while True:
-        if exiting:
-            break
+    while not exiting:
         time.sleep(0.5)
         with result_lock:
             for res in results.values():
@@ -70,7 +68,7 @@ def run_main(args: Sequence[str]) -> None:
           f'This may take {proxy_check_time:d}+ seconds')
 
     print('\nTimed List:')
-    timed_results_thread = Thread(target=cycle_results, daemon=True)
+    timed_results_thread = Thread(target=cycle_results)
     timed_results_thread.start()
 
     check_proxies(Config.proxies)
